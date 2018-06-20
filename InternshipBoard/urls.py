@@ -21,7 +21,6 @@ from api import views
 
 router = DefaultRouter()
 router.register(r'users', views.UserList)
-router.register(r'groups', views.GroupList)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

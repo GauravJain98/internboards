@@ -2,36 +2,58 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.forms import ModelForm
 from uuid import uuid4
+from random import randint
+
+def random_n(n):
+    range_start = 10**(n-1)
+    range_end = (10**n)-1
+    return randint(range_start, range_end)
+
+class Skills(models.Model):
+    name = models.CharField(
+        max_length = 30,
+        unique = True,
+        null=False
+    )
+
+class Custom_User(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete = models.CASCADE
+    )
+    #make it detailed
+    address = models.TextField()
 
 #Intern
 
-class Social(models.Model):
-    linkedin_url = models.CharField(max_length = 200,null = True,blank=True)
-    github = models.CharField(max_length = 200,null = True,blank=True)
-    def __str__(self):
-        return str(self.linkedin_url)
-
 class Intern(models.Model):
-    name = models.CharField(max_length=30,blank=True)
-    email = models.CharField(max_length=200,blank=False, default="")
-    degrees = models.TextField(null = True,blank=True)
     user = models.OneToOneField (
-        User,
+        Custom_User,
         on_delete=models.CASCADE,
     )
-    social = models.OneToOneField(
-        Social,
-        on_delete = models.CASCADE,
-    )
-    skills= models.TextField(null = True,blank=True,default="")
+    degrees = models.TextField(null = True,blank=True)
     sub = models.CharField(max_length=20,blank=True,null=True, default="")
     location = models.CharField(max_length = 50,default = "New Delhi")
+    hired = models.BooleanField(default=False)
     def __str__(self):
         return str(self.name)
     def save(self, *args, **kwargs):
         self.user.email = self.email
         self.user.save()
         super().save(*args, **kwargs)
+
+class Github(models.Model):
+    intern = models.OneToOneField (
+        Intern,
+        on_delete=models.CASCADE,
+    )
+    commits = models.IntegerField(null = False,blank=False)
+    stars = models.IntegerField(null = False,blank=False)
+    followers = models.IntegerField(null = False,blank=False)
+    repositories = models.IntegerField(null = False,blank=False)
+    following = models.IntegerField(null = False,blank=False)
+    def __str__(self):
+        return str(self.linkedin_url)
 
 class Degree(models.Model):
     college_name = models.CharField(max_length=60,blank=False)
@@ -110,13 +132,12 @@ class Hiring(models.Model):
     
 class Company_User(models.Model):
     user = models.ForeignKey(
-        User,
+        Custom_User,
         on_delete=models.CASCADE,
         verbose_name = 'User',
         null = True,
         blank = True,
     )
-    email = models.CharField(max_length=200,blank=False, default="")
     company_id = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
@@ -129,7 +150,6 @@ class Company_User(models.Model):
         on_delete=models.SET_DEFAULT,
         default = 1,
     )
-    name = models.CharField(max_length =100,blank=True)
     share = models.CharField(max_length=4,blank=False, default="1000")
     class Meta:
         verbose_name = 'Company User'
@@ -137,7 +157,7 @@ class Company_User(models.Model):
     def __str__(self):
         return str(self.id)
     def save(self, *args, **kwargs):
-        
+        self.share = random_n(4)
         self.user.email = self.email
         self.user.save()
         super().save(*args, **kwargs)
@@ -184,7 +204,8 @@ class Internship(models.Model):
     responsibility = models.TextField(blank=False , default="")
     stripend = models.CharField(max_length=6,default = "0")
     location = models.CharField(max_length = 50,default = "New Delhi")
- 
+    code = models.CharField(max_length = 4,null=False)
+
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
@@ -199,6 +220,7 @@ class Internship(models.Model):
     def __str__(self):
         return str(self.id)
     def save(self, *args, **kwargs):
+        self.code = random_n(4)
         if self.denied and self.approved:
             self.denied =False
             self.approved = False
@@ -211,11 +233,6 @@ class InternshipAvailable(models.Model):
         verbose_name=  'Internship'
     )
     sub = models.CharField(max_length= 20,default = 'None')
-
-class InternshipForm(ModelForm):
-    class Meta:
-        model = Internship
-        fields = ['catagory','location','fixed','negotiable','performance_based','stripend','stripend_rate','responsibility','start','end','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO']
 
 STATUS_TYPE = (
     ('0','Rejected'),
@@ -269,7 +286,7 @@ class Answer(models.Model):
 
 class SiteAdmin(models.Model):
     user = models.OneToOneField(
-        User,
+        Custom_User,
         on_delete=models.CASCADE,
         verbose_name = 'User',
         null = False,
@@ -279,4 +296,3 @@ class SiteAdmin(models.Model):
     sub = models.CharField(max_length= 20,default = 'iiit')
     def __str__(self):
         return str(self.email)
-
