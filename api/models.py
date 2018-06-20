@@ -31,8 +31,8 @@ class Intern(models.Model):
         Custom_User,
         on_delete=models.CASCADE,
     )
-    degrees = models.TextField(null = True,blank=True)
-    sub = models.CharField(max_length=20,blank=True,null=True, default="")
+    skills = models.ManyToManyField(Skills)
+    college = models.CharField(max_length=20,blank=True,null=True, default="")
     location = models.CharField(max_length = 50,default = "New Delhi")
     hired = models.BooleanField(default=False)
     def __str__(self):
@@ -138,7 +138,7 @@ class Company_User(models.Model):
         null = True,
         blank = True,
     )
-    company_id = models.ForeignKey(
+    company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
         verbose_name = 'Company',
@@ -248,7 +248,7 @@ class Submission(models.Model):
         on_delete=models.CASCADE,
     )
     sub = models.CharField(max_length= 20,default = 'None',blank= True,null=True)
-    internship_id =  models.ForeignKey(
+    internship =  models.ForeignKey(
         Internship,
         on_delete=models.CASCADE,
         verbose_name = 'Internship',
@@ -260,7 +260,7 @@ class Submission(models.Model):
 
 class Question(models.Model):
     question = models.CharField(max_length=50,default='',blank=False)
-    internship_id =  models.ForeignKey(
+    internship =  models.ForeignKey(
         Internship,
         on_delete=models.CASCADE,
         verbose_name = 'Internship',
