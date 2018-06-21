@@ -154,7 +154,6 @@ class Company_User(models.Model):
         return str(self.id)
     def save(self, *args, **kwargs):
         self.share = random_n(4)
-        self.user.email = self.email
         self.user.save()
         super().save(*args, **kwargs)
 
@@ -287,10 +286,9 @@ class SiteAdmin(models.Model):
         null = False,
         blank = False,
     )
-    email = models.CharField(max_length=200,blank=False, default="")
     college = models.CharField(max_length= 20)
     def __str__(self):
-        return str(self.email)
+        return str(self.user.id)
 
 class College(models.Model):
     name = models.CharField(max_length=200,blank=False)

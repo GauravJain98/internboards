@@ -9,7 +9,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('username', 'email', 'first_name', 'last_name','password')
         write_only = ('password')
 
-
 class Custom_UserSerializer(serializers.ModelSerializer):
     """ 
     Custom User Serializer
@@ -55,7 +54,7 @@ class Company_UserSerializer(serializers.ModelSerializer):
         added_user_data = validated_data.pop('added_user')
         company_data = validated_data.pop('company')
 
-        user = UserSerializer.create(UserSerializer(), validated_data=user_data)
+        user = Custom_UserSerializer.create(Custom_UserSerializer(), validated_data=user_data)
 
         company_user ,created = Company_User.objects.update_or_create(user = user ,company=company ,added_user = added_user, **validated_data) 
         return company_user
@@ -97,18 +96,15 @@ class SiteAdminSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Company_User
-        fields = ['id', 'user', 'email','sub']
+        fields = ['id', 'user','sub']
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
 
-        user = UserSerializer.create(UserSerializer(), validated_data=user_data)
+        user = Custom_UserSerializer.create(Custom_UserSerializer(), validated_data=user_data)
         sitadmin ,created = SiteAdmin.objects.update_or_create(user = user , **validated_data) 
 
-        for skill in skills:
-            intern.add(skill)
-
-        return intern
+        return SiteAdmin
 
 class SkillSerializer(serializers.ModelSerializer):
 
