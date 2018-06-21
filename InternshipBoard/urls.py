@@ -25,5 +25,6 @@ router.register(r'users', views.UserList)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    path('login/', include('clientSide.urls')),
     url(r'^', include(router.urls))
 ]

@@ -1,6 +1,7 @@
 from .models import *
-from rest_framework import generics, permissions, serializers
-from django.contrib.auth.models import User, Group
+from rest_framework import permissions, serializers
+from django.contrib.auth.models import User
+from .permissions import *
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -159,7 +160,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 class HiringSerializer(serializers.ModelSerializer):
 
-    company =serializers.StringRelatedField(many=False, queryset=Company.objects.all())    
+    company =serializers.StringRelatedField(many=False)    
 
     class Meta:
         model = Hiring
@@ -174,7 +175,7 @@ class HiringSerializer(serializers.ModelSerializer):
 
 class InternshipSerializer(serializers.ModelSerializer):
 
-    company = serializers.StringRelatedField(many=False, queryset=Company.objects.all())  
+    company = serializers.StringRelatedField(many=False)  
     company_user =  serializers.PrimaryKeyRelatedField(many=False, queryset=Company_User.objects.all()) 
 
     class Meta:
@@ -186,7 +187,7 @@ class InternshipAvalibleSerializer(serializers.ModelSerializer):
     internship =  serializers.PrimaryKeyRelatedField(many=False, queryset=Internship.objects.all()) 
 
     class Meta:
-        model =  InternshipAvalible
+        model =  InternshipAvailable
         fields = ['internship','college']
 
 class SubmissionSerializer(serializers.ModelSerializer):

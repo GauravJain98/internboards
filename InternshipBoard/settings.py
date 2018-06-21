@@ -36,6 +36,7 @@ RU = '/'
 
 INSTALLED_APPS = [
     'api',
+    'clientSide',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
