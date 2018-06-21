@@ -295,3 +295,9 @@ class SiteAdmin(models.Model):
     college = models.CharField(max_length= 20)
     def __str__(self):
         return str(self.email)
+
+
+class College(models.Model):
+    name = models.CharField(max_length=200,blank=False)
+    sub = models.CharField(max_length=200,blank=False)
+    location = models.CharField(max_length=200,blank=False, default="")
