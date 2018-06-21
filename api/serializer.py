@@ -86,6 +86,7 @@ class InternSerializer(serializers.ModelSerializer):
         return intern
 
 class GithubSerializer(serializers.ModelSerializer):
+    intern = serializers.PrimaryKeyRelatedField(many=False, queryset=Intern.objects.all())    
     class Meta:
         model = Github
         fields = ('intern','commits','stars','followers','repositories','following')

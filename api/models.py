@@ -36,7 +36,7 @@ class Intern(models.Model):
     location = models.CharField(max_length = 50,default = "New Delhi")
     hired = models.BooleanField(default=False)
     def __str__(self):
-        return str(self.name)
+        return "{} {}".format(self.user.user.first_name,self.user.user.last_name)
 ##
 class Github(models.Model):
     intern = models.OneToOneField (
@@ -49,7 +49,7 @@ class Github(models.Model):
     repositories = models.IntegerField(null = False,blank=False)
     following = models.IntegerField(null = False,blank=False)
     def __str__(self):
-        return str(self.linkedin_url)
+        return str(self.intern)
 ##
 class Degree(models.Model):
     college_name = models.CharField(max_length=60,blank=False)
