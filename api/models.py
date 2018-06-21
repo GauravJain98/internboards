@@ -8,14 +8,14 @@ def random_n(n):
     range_start = 10**(n-1)
     range_end = (10**n)-1
     return randint(range_start, range_end)
-#
+##
 class Skill(models.Model):
     name = models.CharField(
         max_length = 30,
         unique = True,
         null=False
     )
-#
+##
 class Custom_User(models.Model):
     user = models.OneToOneField(
         User,
@@ -25,7 +25,7 @@ class Custom_User(models.Model):
     address = models.TextField()
 
 #Intern
-#
+##
 class Intern(models.Model):
     user = models.OneToOneField (
         Custom_User,
@@ -41,7 +41,7 @@ class Intern(models.Model):
         self.user.email = self.email
         self.user.save()
         super().save(*args, **kwargs)
-#
+##
 class Github(models.Model):
     intern = models.OneToOneField (
         Intern,
@@ -54,7 +54,7 @@ class Github(models.Model):
     following = models.IntegerField(null = False,blank=False)
     def __str__(self):
         return str(self.linkedin_url)
-#
+##
 class Degree(models.Model):
     college_name = models.CharField(max_length=60,blank=False)
     start = models.CharField(max_length=10,blank=False)
@@ -70,7 +70,7 @@ class Degree(models.Model):
     ) 
     def __str__(self):
         return str(self.id)
-#
+##
 class Job(models.Model):
     position = models.CharField(max_length =60,blank=False)
     organization = models.CharField(max_length =90,blank=False)
@@ -84,7 +84,7 @@ class Job(models.Model):
     )
     def __str__(self):
         return str(self.id)
-#
+##
 class Project(models.Model):
     name = models.CharField(max_length =60,blank=False)
     start = models.CharField(max_length=10,blank=False)
@@ -104,7 +104,7 @@ def random_string():
     while Company.objects.filter(key = rnd ):
         rnd = str(uuid4().hex)
     return rnd
-#        
+##       
 class Company(models.Model):
     name = models.CharField(max_length=30,blank=False)
     website = models.CharField(max_length=60,blank=False, default="")
@@ -118,7 +118,7 @@ class Company(models.Model):
         verbose_name_plural = 'Companies'
     def __str__(self):
         return self.name
-#
+##
 class Hiring(models.Model):
     company = models.ForeignKey(
         Company,
@@ -126,10 +126,10 @@ class Hiring(models.Model):
         null = False,
         blank = False,
     )
-    college = models.CharField(max_length= 20,default = 'None')
+    college = models.CharField(max_length= 20)
     def __str__(self):
-        return str(self.sub)
-#    
+        return str(self.college)
+##    
 class Company_User(models.Model):
     user = models.ForeignKey(
         Custom_User,
@@ -174,15 +174,14 @@ STRIPEND_RATE = (
     ('/Week' , "/Week"),
     ('Lump Sum' , "Lump Sum"),
 )
-#
+##
 class Category(models.Model):
     name = models.CharField(max_length = 20,blank=False,unique = True)
     def __str__(self):
         return str(self.name)
-        
+##      
 class Internship(models.Model):
-    interns_applied = models.ManyToManyField(Intern)
-    application_number = models.IntegerField(default=0)
+    applications = models.IntegerField(default=0)
     selected = models.IntegerField(default=0)   
     approved = models.BooleanField(default = 'False')
     denied = models.BooleanField(default = 'False')
@@ -201,7 +200,7 @@ class Internship(models.Model):
     catagory = models.CharField(max_length= 20,default = 'None')
     start = models.DateField(auto_now=False, auto_now_add=False)
     end= models.DateField(auto_now=False, auto_now_add=False)
-    responsibility = models.TextField(blank=False , default="")
+    responsibilities = models.TextField(blank=False , default="")
     stripend = models.CharField(max_length=6,default = "0")
     location = models.CharField(max_length = 50,default = "New Delhi")
     code = models.CharField(max_length = 4,null=False)
@@ -225,14 +224,14 @@ class Internship(models.Model):
             self.denied =False
             self.approved = False
         super().save(*args, **kwargs)
-
+##
 class InternshipAvailable(models.Model):
     internship = models.ForeignKey(
         Internship,
         on_delete = models.CASCADE,
         verbose_name=  'Internship'
     )
-    sub = models.CharField(max_length= 20,default = 'None')
+    college = models.CharField(max_length= 20)
 
 STATUS_TYPE = (
     ('0','Rejected'),
@@ -241,13 +240,13 @@ STATUS_TYPE = (
     ('3','Interviewee'),
     ('4','Hired'),
 )
-
+##
 class Submission(models.Model):
     intern = models.ForeignKey (
         Intern,
         on_delete=models.CASCADE,
     )
-    sub = models.CharField(max_length= 20,default = 'None',blank= True,null=True)
+    college = models.CharField(max_length= 20, blank= True,null=True)
     internship =  models.ForeignKey(
         Internship,
         on_delete=models.CASCADE,
@@ -257,7 +256,7 @@ class Submission(models.Model):
     selected = models.BooleanField(default = 'False')
     def __str__(self):
         return str(self.id)
-
+##
 class Question(models.Model):
     question = models.CharField(max_length=50,default='',blank=False)
     internship =  models.ForeignKey(
@@ -267,7 +266,7 @@ class Question(models.Model):
     )
     def __str__(self):
         return str(self.question)
-
+##
 class Answer(models.Model):
     submission = models.ForeignKey(
         Submission,
@@ -283,7 +282,7 @@ class Answer(models.Model):
         return self.answer_text
 
 #CustomAdmin
-#
+##
 class SiteAdmin(models.Model):
     user = models.OneToOneField(
         Custom_User,
@@ -293,6 +292,6 @@ class SiteAdmin(models.Model):
         blank = False,
     )
     email = models.CharField(max_length=200,blank=False, default="")
-    sub = models.CharField(max_length= 20,default = 'iiit')
+    college = models.CharField(max_length= 20)
     def __str__(self):
         return str(self.email)

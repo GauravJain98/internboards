@@ -159,7 +159,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 class HiringSerializer(serializers.ModelSerializer):
 
-    company = serializers.PrimaryKeyRelatedField(many=False, queryset=Company.objects.all())    
+    company =serializers.StringRelatedField(many=False, queryset=Company.objects.all())    
 
     class Meta:
         model = Hiring
@@ -172,5 +172,46 @@ class HiringSerializer(serializers.ModelSerializer):
 
         return intern
 
-#class InternshipSerializer(serializers.ModelSerializer):
-    
+class InternshipSerializer(serializers.ModelSerializer):
+
+    company = serializers.StringRelatedField(many=False, queryset=Company.objects.all())  
+    company_user =  serializers.PrimaryKeyRelatedField(many=False, queryset=Company_User.objects.all()) 
+
+    class Meta:
+        model =  Internship
+        fields = ['company','company_user','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snack','informal_dress_code','PPO','stripend','start','end','responsibilities','stripend','location','code']
+
+class InternshipAvalibleSerializer(serializers.ModelSerializer):
+
+    internship =  serializers.PrimaryKeyRelatedField(many=False, queryset=Internship.objects.all()) 
+
+    class Meta:
+        model =  InternshipAvalible
+        fields = ['internship','college']
+
+class SubmissionSerializer(serializers.ModelSerializer):
+
+    intern =serializers.PrimaryKeyRelatedField(many=False, queryset=Intern.objects.all())    
+    internship =serializers.PrimaryKeyRelatedField(many=False, queryset=Internship.objects.all())    
+
+    class Meta:
+        model = Submission
+        fields = ['id', 'intern','college','internship','status','selected']
+
+class QuestionSerializer(serializers.ModelSerializer):
+
+    internship =serializers.PrimaryKeyRelatedField(many=False, queryset=Internship.objects.all())    
+
+    class Meta:
+        model = Question
+        fields = ['id', 'internship','question']
+
+class AnswerSerializer(serializers.ModelSerializer):
+
+    submission =serializers.PrimaryKeyRelatedField(many=False, queryset=Submission.objects.all())    
+    question =serializers.PrimaryKeyRelatedField(many=False, queryset=Question.objects.all())    
+
+    class Meta:
+        model = Answer
+        fields = ['id', 'submission','question','answer_text']
+
