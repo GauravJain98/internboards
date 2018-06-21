@@ -32,9 +32,9 @@ class CompanySerializer(serializers.ModelSerializer):
         model = Company
         fields = ('name','website','email','description','address','city')
 
-class Catagory(serializers.ModelSerializer):
+class CategorySeializer(serializers.ModelSerializer):
     class Meta:
-        model = Catagory
+        model = Category
         fields = ('name',)
 
 class Company_UserSerializer(serializers.ModelSerializer):
@@ -63,7 +63,7 @@ class InternSerializer(serializers.ModelSerializer):
     skills = serializers.SlugRelatedField(
         many=True,
         slug_field='name',
-        queryset=Skills.objects.all()
+        queryset=Skill.objects.all()
     )
 
     class Meta:
@@ -123,10 +123,7 @@ class DegreeSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
 
         intern_data = validated_data.pop('intern')
-        degree ,created = Degree.objects.update_or_create(intern = intern, **validated_data) 
-
-        for skill in skills:
-            intern.add(skill)
+        degree ,created = Degree.objects.update_or_create(intern = intern_data, **validated_data) 
 
         return intern
 
@@ -141,10 +138,7 @@ class JobSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
 
         intern_data = validated_data.pop('intern')
-        degree ,created = Degree.objects.update_or_create(intern = intern, **validated_data) 
-
-        for skill in skills:
-            intern.add(skill)
+        job ,created = Job.objects.update_or_create(intern = intern_data, **validated_data) 
 
         return intern
 
@@ -162,3 +156,21 @@ class ProjectSerializer(serializers.ModelSerializer):
         project ,created = Project.objects.update_or_create(intern = intern, **validated_data) 
 
         return intern
+
+class HiringSerializer(serializers.ModelSerializer):
+
+    company = serializers.PrimaryKeyRelatedField(many=False, queryset=Company.objects.all())    
+
+    class Meta:
+        model = Hiring
+        fields = ['id', 'company','college']
+
+    def create(self, validated_data):
+
+        company_data = validated_data.pop('company')
+        hiring ,created = Hiring.objects.update_or_create(company = company, **validated_data) 
+
+        return intern
+
+#class InternshipSerializer(serializers.ModelSerializer):
+    

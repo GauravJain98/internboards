@@ -8,14 +8,14 @@ def random_n(n):
     range_start = 10**(n-1)
     range_end = (10**n)-1
     return randint(range_start, range_end)
-
-class Skills(models.Model):
+#
+class Skill(models.Model):
     name = models.CharField(
         max_length = 30,
         unique = True,
         null=False
     )
-
+#
 class Custom_User(models.Model):
     user = models.OneToOneField(
         User,
@@ -25,13 +25,13 @@ class Custom_User(models.Model):
     address = models.TextField()
 
 #Intern
-
+#
 class Intern(models.Model):
     user = models.OneToOneField (
         Custom_User,
         on_delete=models.CASCADE,
     )
-    skills = models.ManyToManyField(Skills)
+    skills = models.ManyToManyField(Skill)
     college = models.CharField(max_length=20,blank=True,null=True, default="")
     location = models.CharField(max_length = 50,default = "New Delhi")
     hired = models.BooleanField(default=False)
@@ -41,7 +41,7 @@ class Intern(models.Model):
         self.user.email = self.email
         self.user.save()
         super().save(*args, **kwargs)
-
+#
 class Github(models.Model):
     intern = models.OneToOneField (
         Intern,
@@ -54,7 +54,7 @@ class Github(models.Model):
     following = models.IntegerField(null = False,blank=False)
     def __str__(self):
         return str(self.linkedin_url)
-
+#
 class Degree(models.Model):
     college_name = models.CharField(max_length=60,blank=False)
     start = models.CharField(max_length=10,blank=False)
@@ -70,7 +70,7 @@ class Degree(models.Model):
     ) 
     def __str__(self):
         return str(self.id)
-
+#
 class Job(models.Model):
     position = models.CharField(max_length =60,blank=False)
     organization = models.CharField(max_length =90,blank=False)
@@ -84,7 +84,7 @@ class Job(models.Model):
     )
     def __str__(self):
         return str(self.id)
-
+#
 class Project(models.Model):
     name = models.CharField(max_length =60,blank=False)
     start = models.CharField(max_length=10,blank=False)
@@ -104,7 +104,7 @@ def random_string():
     while Company.objects.filter(key = rnd ):
         rnd = str(uuid4().hex)
     return rnd
-        
+#        
 class Company(models.Model):
     name = models.CharField(max_length=30,blank=False)
     website = models.CharField(max_length=60,blank=False, default="")
@@ -118,7 +118,7 @@ class Company(models.Model):
         verbose_name_plural = 'Companies'
     def __str__(self):
         return self.name
-
+#
 class Hiring(models.Model):
     company = models.ForeignKey(
         Company,
@@ -126,10 +126,10 @@ class Hiring(models.Model):
         null = False,
         blank = False,
     )
-    sub = models.CharField(max_length= 20,default = 'None')
+    college = models.CharField(max_length= 20,default = 'None')
     def __str__(self):
         return str(self.sub)
-    
+#    
 class Company_User(models.Model):
     user = models.ForeignKey(
         Custom_User,
@@ -174,8 +174,8 @@ STRIPEND_RATE = (
     ('/Week' , "/Week"),
     ('Lump Sum' , "Lump Sum"),
 )
-
-class Catagory(models.Model):
+#
+class Category(models.Model):
     name = models.CharField(max_length = 20,blank=False,unique = True)
     def __str__(self):
         return str(self.name)
@@ -283,7 +283,7 @@ class Answer(models.Model):
         return self.answer_text
 
 #CustomAdmin
-
+#
 class SiteAdmin(models.Model):
     user = models.OneToOneField(
         Custom_User,

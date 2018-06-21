@@ -23,9 +23,3 @@ class UserList(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-'''
-class GroupList(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-    queryset = Group.objects.all()
-    serializer_class = GroupSerializer
-'''
