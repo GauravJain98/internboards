@@ -37,10 +37,6 @@ class Intern(models.Model):
     hired = models.BooleanField(default=False)
     def __str__(self):
         return str(self.name)
-    def save(self, *args, **kwargs):
-        self.user.email = self.email
-        self.user.save()
-        super().save(*args, **kwargs)
 ##
 class Github(models.Model):
     intern = models.OneToOneField (

@@ -6,7 +6,9 @@ from .permissions import *
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name')
+        fields = ('username', 'email', 'first_name', 'last_name','password')
+        write_only = ('password')
+
 
 class Custom_UserSerializer(serializers.ModelSerializer):
     """ 
@@ -75,11 +77,11 @@ class InternSerializer(serializers.ModelSerializer):
         user_data = validated_data.pop('user')
         skills_data = validated_data.pop('skills')
 
-        user = UserSerializer.create(UserSerializer(), validated_data=user_data)
-        intern ,created = Intern.objects.update_or_create(user = user ,company=company ,added_user = added_user, **validated_data) 
+        user = Custom_UserSerializer.create(Custom_UserSerializer(), validated_data=user_data)
+        intern ,created = Intern.objects.update_or_create(user = user , **validated_data) 
 
-        for skill in skills:
-            intern.add(skill)
+        for skill in skills_data:
+            intern.skills.add(skill)
 
         return intern
 
