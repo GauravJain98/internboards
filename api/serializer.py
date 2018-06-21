@@ -39,6 +39,11 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = ('name',)
 
+class CollegeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = College
+        fields = ('name','sub','location')
+
 class Company_UserSerializer(serializers.ModelSerializer):
 
     user = Custom_UserSerializer(required=True)

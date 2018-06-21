@@ -8,6 +8,12 @@ def random_n(n):
     range_start = 10**(n-1)
     range_end = (10**n)-1
     return randint(range_start, range_end)
+
+class College(models.Model):
+    name = models.CharField(max_length=200,blank=False)
+    sub = models.CharField(max_length=200,blank=False)
+    location = models.CharField(max_length=200,blank=False, default="")
+
 ##
 class Skill(models.Model):
     name = models.CharField(
@@ -289,8 +295,3 @@ class SiteAdmin(models.Model):
     college = models.CharField(max_length= 20)
     def __str__(self):
         return str(self.user.id)
-
-class College(models.Model):
-    name = models.CharField(max_length=200,blank=False)
-    sub = models.CharField(max_length=200,blank=False)
-    location = models.CharField(max_length=200,blank=False, default="")
