@@ -95,7 +95,7 @@ class SiteAdminSerializer(serializers.ModelSerializer):
     user = Custom_UserSerializer(required=True)
 
     class Meta:
-        model = Company_User
+        model = SiteAdmin
         fields = ['id', 'user','college']
 
     def create(self, validated_data):
