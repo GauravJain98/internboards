@@ -68,7 +68,7 @@ class InternSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = Company_User
+        model = Intern
         fields = ['id', 'user', 'skills','college','location','hired']
 
     def create(self, validated_data):
