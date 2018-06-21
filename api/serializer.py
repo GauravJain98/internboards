@@ -33,7 +33,7 @@ class CompanySerializer(serializers.ModelSerializer):
         model = Company
         fields = ('name','website','email','description','address','city')
 
-class CategorySeializer(serializers.ModelSerializer):
+class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ('name',)
@@ -182,7 +182,7 @@ class InternshipSerializer(serializers.ModelSerializer):
         model =  Internship
         fields = ['company','company_user','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snack','informal_dress_code','PPO','stripend','start','end','responsibilities','stripend','location','code']
 
-class InternshipAvalibleSerializer(serializers.ModelSerializer):
+class InternshipAvaliableSerializer(serializers.ModelSerializer):
 
     internship =  serializers.PrimaryKeyRelatedField(many=False, queryset=Internship.objects.all()) 
 

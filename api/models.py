@@ -296,7 +296,6 @@ class SiteAdmin(models.Model):
     def __str__(self):
         return str(self.email)
 
-
 class College(models.Model):
     name = models.CharField(max_length=200,blank=False)
     sub = models.CharField(max_length=200,blank=False)

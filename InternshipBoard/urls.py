@@ -22,6 +22,20 @@ from api import views
 router = DefaultRouter()
 router.register(r'intern', views.InternList)
 router.register(r'companyuser', views.Company_UserList)
+router.register(r'category', views.CategoryList)
+router.register(r'github', views.GithubList)
+router.register(r'company', views.CompanyList)
+router.register(r'siteadmin', views.SiteAdminList)
+router.register(r'skill', views.SkillList)
+router.register(r'degree', views.DegreeList)
+router.register(r'job', views.JobList)
+router.register(r'project', views.ProjectList)
+router.register(r'hiring', views.HiringList)
+router.register(r'internship', views.InternshipList)
+router.register(r'internshipavaliable', views.InternshipAvaliableList)
+router.register(r'submission', views.SubmissionList)
+router.register(r'question', views.QuestionList)
+router.register(r'answer', views.AnswerList)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
