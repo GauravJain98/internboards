@@ -55,22 +55,22 @@ class ProjectList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
-
+'''
 class HiringList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Hiring.objects.all()
     serializer_class = HiringSerializer
-
+'''
 class InternshipList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Internship.objects.all()
     serializer_class = InternshipSerializer
-
+'''
 class InternshipAvaliableList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = InternshipAvailable.objects.all()
     serializer_class = InternshipAvaliableSerializer
-
+'''
 class SubmissionList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Submission.objects.all()

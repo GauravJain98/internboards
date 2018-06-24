@@ -161,7 +161,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         project ,created = Project.objects.update_or_create(intern = intern, **validated_data) 
 
         return intern
-
+'''
 class HiringSerializer(serializers.ModelSerializer):
 
     company =serializers.StringRelatedField(many=False)    
@@ -176,7 +176,7 @@ class HiringSerializer(serializers.ModelSerializer):
         hiring ,created = Hiring.objects.update_or_create(company = company, **validated_data) 
 
         return intern
-
+'''
 class InternshipSerializer(serializers.ModelSerializer):
 
     company = serializers.StringRelatedField(many=False)  
@@ -184,8 +184,8 @@ class InternshipSerializer(serializers.ModelSerializer):
 
     class Meta:
         model =  Internship
-        fields = ['company','company_user','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snack','informal_dress_code','PPO','stripend','start','end','responsibilities','stripend','location','code']
-
+        fields = ['company','company_user','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stripend','start','end','responsibilities','stripend','location','code','stripend_rate']
+'''
 class InternshipAvaliableSerializer(serializers.ModelSerializer):
 
     internship =  serializers.PrimaryKeyRelatedField(many=False, queryset=Internship.objects.all()) 
@@ -193,7 +193,7 @@ class InternshipAvaliableSerializer(serializers.ModelSerializer):
     class Meta:
         model =  InternshipAvailable
         fields = ['internship','college']
-
+'''
 class SubmissionSerializer(serializers.ModelSerializer):
 
     intern =serializers.PrimaryKeyRelatedField(many=False, queryset=Intern.objects.all())    

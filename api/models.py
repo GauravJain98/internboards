@@ -115,22 +115,12 @@ class Company(models.Model):
     key = models.CharField(max_length=128 , default = random_string ,unique=True )
     address = models.CharField(max_length = 100,default = "")
     city = models.CharField(max_length = 100,default = "")
+    hiring = models.ManyToManyField(College , related_name='hiring')
     class Meta:
         verbose_name = 'Company'
         verbose_name_plural = 'Companies'
     def __str__(self):
         return self.name
-##
-class Hiring(models.Model):
-    company = models.ForeignKey(
-        Company,
-        on_delete = models.CASCADE,
-        null = False,
-        blank = False,
-    )
-    college = models.CharField(max_length= 20)
-    def __str__(self):
-        return str(self.college)
 ##    
 class Company_User(models.Model):
     user = models.ForeignKey(
@@ -205,6 +195,7 @@ class Internship(models.Model):
     stripend = models.CharField(max_length=6,default = "0")
     location = models.CharField(max_length = 50,default = "New Delhi")
     code = models.CharField(max_length = 4,null=False)
+    available = models.ManyToManyField(College , related_name='internships')
 
     company = models.ForeignKey(
         Company,
