@@ -196,7 +196,8 @@ class Internship(models.Model):
     location = models.CharField(max_length = 50,default = "New Delhi")
     code = models.CharField(max_length = 4,null=False)
     available = models.ManyToManyField(College , related_name='internships')
-
+    skills = models.ManyToManyField(Skill)
+    
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
