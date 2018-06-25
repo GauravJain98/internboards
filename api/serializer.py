@@ -28,10 +28,12 @@ class Custom_UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
+        address_data = validated_data.pop('address')
 
         user = UserSerializer.create(UserSerializer(), validated_data=user_data)
+        address = AddressSerializer.create(AddressSerializer(), validated_data=address_data)
 
-        custom_user, created = Custom_User.objects.update_or_create(user=user, **validated_data)
+        custom_user, created = Custom_User.objects.update_or_create(user=user,address=address, **validated_data)
         return custom_user
 
 class CompanySerializer(serializers.ModelSerializer):
