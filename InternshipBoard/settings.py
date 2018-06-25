@@ -25,7 +25,7 @@ SECRET_KEY = '4diltns)9_xeshyh)nx3i*oc7ro6gi_dmhg-^o74b1eb5e383p'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['api.internboards.com']
+ALLOWED_HOSTS = ['*']
 
 
 
