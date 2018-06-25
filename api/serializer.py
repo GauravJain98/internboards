@@ -2,6 +2,7 @@ from .models import *
 from rest_framework import permissions, serializers
 from django.contrib.auth.models import User
 from .permissions import *
+
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
