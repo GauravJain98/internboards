@@ -5,11 +5,25 @@ from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, TokenHasScope
 from .serializer import *
+from rest_framework.pagination import PageNumberPagination
+
+class BasictPagination(PageNumberPagination):
+    page_size_query_param = 'limit'
+    max_page_size = 20
+    def get_paginated_response(self, data):
+         return Response({
+            'links': {
+                'next': self.get_next_link(),
+                'previous': self.get_previous_link()
+            },
+            'results': data
+        })
 
 class InternList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Intern.objects.all()
     serializer_class = InternSerializer
+    pagination_class = BasictPagination
 
 class Company_UserList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
