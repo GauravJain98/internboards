@@ -29,7 +29,7 @@ class Company_UserList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Company_User.objects.all()
     serializer_class = Company_UserSerializer
-     pagination_class = BasicPagination
+    pagination_class = BasicPagination
 
 class CategoryList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
