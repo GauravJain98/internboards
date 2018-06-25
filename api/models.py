@@ -9,10 +9,22 @@ def random_n(n):
     range_end = (10**n)-1
     return randint(range_start, range_end)
 
+class Address(models.Model):
+    apartment = models.CharField(max_length=10,blank=False)
+    street = models.CharField(max_length=30,blank=False)
+    city = models.CharField(max_length=10,blank=False)
+    zip_code = models.CharField(max_length=8,blank=False)
+    country = models.CharField(max_length=50,blank=False)
+    
+
 class College(models.Model):
     name = models.CharField(max_length=200,blank=False)
     sub = models.CharField(max_length=200,blank=False)
-    location = models.CharField(max_length=200,blank=False, default="")
+    address = models.ForeignKey(
+        Address,
+        on_delete = models.PROTECT,
+        unique = True,
+    )
 
 ##
 class Skill(models.Model):
@@ -21,14 +33,19 @@ class Skill(models.Model):
         unique = True,
         null=False
     )
+    def __str__(self):
+        return self.name
 ##
 class Custom_User(models.Model):
     user = models.OneToOneField(
         User,
         on_delete = models.CASCADE
     )
-    #make it detailed
-    address = models.TextField()
+    address = models.ForeignKey(
+        Address,
+        on_delete = models.PROTECT,
+        unique = True,
+    )
 
 #Intern
 ##
@@ -39,7 +56,6 @@ class Intern(models.Model):
     )
     skills = models.ManyToManyField(Skill)
     college = models.CharField(max_length=20,blank=True,null=True, default="")
-    location = models.CharField(max_length = 50,default = "New Delhi")
     hired = models.BooleanField(default=False)
     def __str__(self):
         return "{} {}".format(self.user.user.first_name,self.user.user.last_name)
@@ -113,7 +129,11 @@ class Company(models.Model):
     email = models.CharField(max_length=200,blank=False, default="")
     description = models.TextField(blank=False , default="")    
     key = models.CharField(max_length=128 , default = random_string ,unique=True )
-    address = models.CharField(max_length = 100,default = "")
+    address = models.ForeignKey(
+        Address,
+        on_delete = models.PROTECT,
+        unique = True,
+    )
     city = models.CharField(max_length = 100,default = "")
     hiring = models.ManyToManyField(College , related_name='hiring')
     class Meta:
@@ -194,7 +214,7 @@ class Internship(models.Model):
     responsibilities = models.TextField(blank=False , default="")
     stripend = models.CharField(max_length=6,default = "0")
     location = models.CharField(max_length = 50,default = "New Delhi")
-    code = models.CharField(max_length = 4,null=False)
+    code = models.CharField(max_length = 4,null=False,blank=True)
     available = models.ManyToManyField(College , related_name='internships')
     skills = models.ManyToManyField(Skill)
     
@@ -217,14 +237,6 @@ class Internship(models.Model):
             self.denied =False
             self.approved = False
         super().save(*args, **kwargs)
-##
-class InternshipAvailable(models.Model):
-    internship = models.ForeignKey(
-        Internship,
-        on_delete = models.CASCADE,
-        verbose_name=  'Internship'
-    )
-    college = models.CharField(max_length= 20)
 
 STATUS_TYPE = (
     ('0','Rejected'),

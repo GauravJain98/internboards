@@ -2,6 +2,10 @@ from .models import *
 from rest_framework import permissions, serializers
 from django.contrib.auth.models import User
 from .permissions import *
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = ('apartment','street','city','zip_code','country')
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,7 +20,8 @@ class Custom_UserSerializer(serializers.ModelSerializer):
     """
 
     user = UserSerializer(required=True)
-    
+    address = AddressSerializer(required = True)
+
     class Meta:
         model = Custom_User
         fields = ['id', 'user', 'address']
@@ -30,15 +35,27 @@ class Custom_UserSerializer(serializers.ModelSerializer):
         return custom_user
 
 class CompanySerializer(serializers.ModelSerializer):
-    hiring = serializers.PrimaryKeyRelatedField(
+    hiring = serializers.SlugRelatedField(
         many=True,
+        slug_field='sub',
         queryset=College.objects.all()
     )
+    address = AddressSerializer(required = True)
 
     class Meta:
         model = Company
         fields = ('name','hiring','website','email','description','address','city')
 
+    def create(self,validated_data):
+        hiring_data = validated_data.pop('hiring')
+        address_data = validated_data.pop('address')
+        address = AddressSerializer.create(AddressSerializer(),validated_data=address_data)
+
+        company , created = Company.objects.update_or_create(address=address,**validated_data) 
+
+        for hiring in hiring_data:
+            company.hiring.add(hiring)
+        return company
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -46,9 +63,17 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ('name',)
 
 class CollegeSerializer(serializers.ModelSerializer):
+    address = AddressSerializer(required = True)
+    
     class Meta:
         model = College
         fields = ('name','sub','location')
+
+    def create(self,validated_data):
+        address_data = validated_data.pop('address')
+        address = AddressSerializer.create(AddressSerializer(),validated_data=address_data)
+        college , created = College.objects.update_or_create(address=address,**validated_data) 
+        return college
 
 class Company_UserSerializer(serializers.ModelSerializer):
 
