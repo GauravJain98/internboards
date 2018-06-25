@@ -67,7 +67,7 @@ class CollegeSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = College
-        fields = ('name','sub','location')
+        fields = ('name','sub','location','address')
 
     def create(self,validated_data):
         address_data = validated_data.pop('address')
@@ -106,7 +106,7 @@ class InternSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Intern
-        fields = ['id', 'user', 'skills','college','location','hired']
+        fields = ['id', 'user', 'skills','college','hired']
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
