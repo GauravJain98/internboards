@@ -25,7 +25,6 @@ class College(models.Model):
         on_delete = models.PROTECT,
         unique = True,
     )
-
 ##
 class Skill(models.Model):
     name = models.CharField(

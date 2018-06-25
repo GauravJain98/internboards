@@ -84,7 +84,7 @@ WSGI_APPLICATION = 'InternshipBoard.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'InternshipBoards',
+        'NAME': 'InternBoards',
         'HOST':'sgp-81.rds.api-central.net',
         'USER':'root',
         'PASSWORD':'2j6pPjiVnhdPwysHfKvXSSO9',
