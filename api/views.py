@@ -3,9 +3,17 @@ from django.contrib.auth.models import User, Group
 from django.contrib import admin
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
+from django_filters import rest_framework as filters
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, TokenHasScope
 from .serializer import *
 from rest_framework.pagination import PageNumberPagination
+
+
+class UserFilter(filters.FilterSet):
+
+    class Meta:
+        model = User
+        fields = ['username']
 
 class BasicPagination(PageNumberPagination):
     page_size_query_param = 'limit'
@@ -24,6 +32,15 @@ class InternList(viewsets.ModelViewSet):
     queryset = Intern.objects.all()
     serializer_class = InternSerializer
     pagination_class = BasicPagination
+
+class InternUsernameList(viewsets.ModelViewSet):
+    permissions_classes = (permissions.IsAuthenticated,)
+    queryset = Intern.objects.all()
+    serializer_class = InternSerializer
+    pagination_class = BasicPagination
+    def get_queryset(self):
+        queryset = self.queryset.filter(user__user__username = self.request.GET['username'])
+        return queryset
 
 class Company_UserList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
