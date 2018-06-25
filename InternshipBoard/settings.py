@@ -28,9 +28,6 @@ DEBUG = True
 ALLOWED_HOSTS = ['api.internboards.com']
 
 
-CID = 'o7Hkmjt1qroBLQ6MGWqlLkuI8l77zEeP5KJLFq44'
-CS = 'ky1Sc0yhTBFUn1dbPINqU7amLfVWceWyiVmu7okSa6X7nUttiYAzg1796HDirFfDLKUxWky6XMl1Wg2k26VOpxlPyWrnaCFHUEybZ21CAfsmuYHjOzQ5EzrgqFQYzw66'
-RU = '/'
 
 # Application definition
 
