@@ -213,22 +213,30 @@ class HiringSerializer(serializers.ModelSerializer):
 '''
 class InternshipSerializer(serializers.ModelSerializer):
 
-    company = serializers.StringRelatedField(many=False)  
+    company = serializers.PrimaryKeyRelatedField(
+        many=False,
+        queryset = Company.objects.all()
+    )  
     company_user =  serializers.PrimaryKeyRelatedField(many=False, queryset=Company_User.objects.all()) 
     skills = serializers.SlugRelatedField(
         many=True,
         slug_field='name',
         queryset=Skill.objects.all()
     )
-
+    company_name = serializers.SlugRelatedField(
+        many=True,
+        slug_field='name',
+        queryset=Company.objects.all()
+    )
 
     class Meta:
         model =  Internship
-        fields = ['company','skills','company_user','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stripend','start','end','responsibilities','stripend','location','code','stripend_rate']
+        fields = ['company','skills','company_user','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stripend','start','end','responsibilities','stripend','location','code','stripend_rate','company_name']
    
     def create(self, validated_data):
         skills_data = validated_data.pop('skills')
         company_data = validated_data.pop('company')
+        company_data = validated_data.pop('company_name')
         company_user_data = validated_data.pop('company_user')
         internship ,created = Internship.objects.update_or_create(company_user = company_user_data ,company = company_data , **validated_data) 
 

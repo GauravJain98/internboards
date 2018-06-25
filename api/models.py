@@ -158,8 +158,10 @@ class Company_User(models.Model):
     is_HR = models.BooleanField(default = 'True')
     added_user = models.ForeignKey(
         'api.Company_User',
-        on_delete=models.SET_DEFAULT,
-        default = 1,
+        on_delete=models.CASCADE,
+        verbose_name = 'User',
+        null = True,
+        blank = True,
     )
     share = models.CharField(max_length=4,blank=False, default="1000")
     class Meta:
