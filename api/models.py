@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.forms import ModelForm
 from uuid import uuid4
+import datetime
 from random import randint
 
 def random_n(n):
@@ -74,8 +75,8 @@ class Github(models.Model):
 ##
 class Degree(models.Model):
     college_name = models.CharField(max_length=60,blank=False)
-    start = models.CharField(max_length=10,blank=False)
-    end= models.CharField(max_length=10,blank=True)
+    start = models.DateField(("Date"), default=datetime.date.today)
+    end= models.DateField(("Date"), default=datetime.date.today)
     performance = models.CharField(max_length=3,blank=False)
     name =models.CharField(max_length= 20,default = 'None')
     type_of_degree =models.CharField(max_length= 20,default = 'None')
@@ -92,8 +93,8 @@ class Job(models.Model):
     position = models.CharField(max_length =60,blank=False)
     organization = models.CharField(max_length =90,blank=False)
     location = models.CharField(max_length =90,blank=False)
-    start = models.CharField(max_length=10,blank=False)
-    end= models.CharField(max_length=10,blank=True)
+    start = models.DateField(("Date"), default=datetime.date.today)
+    end= models.DateField(("Date"), default=datetime.date.today)
     description = models.TextField()
     intern = models.ForeignKey(
         Intern,
@@ -104,8 +105,8 @@ class Job(models.Model):
 ##
 class Project(models.Model):
     name = models.CharField(max_length =60,blank=False)
-    start = models.CharField(max_length=10,blank=False)
-    end= models.CharField(max_length=10)
+    start = models.DateField(("Date"), default=datetime.date.today)
+    end= models.DateField(("Date"), default=datetime.date.today)
     description = models.TextField()
     intern = models.ForeignKey(
         Intern,
@@ -211,13 +212,15 @@ class Internship(models.Model):
     performance_based=models.BooleanField(default = 'False')
     catagory = models.CharField(max_length= 20,default = 'None')
     start = models.DateField(auto_now=False, auto_now_add=False)
-    end= models.DateField(auto_now=False, auto_now_add=False)
+    duration= models.IntegerField(default=0,null=True,blank=True)
     responsibilities = models.TextField(blank=False , default="")
     stripend = models.CharField(max_length=6,default = "0")
     location = models.CharField(max_length = 50,default = "New Delhi")
     code = models.CharField(max_length = 4,null=False,blank=True)
     available = models.ManyToManyField(College , related_name='internships')
-    skills = models.ManyToManyField(Skill)
+    skills = models.ManyToManyField(Skill,
+    null=True,
+    blank=True)
     
     company = models.ForeignKey(
         Company,

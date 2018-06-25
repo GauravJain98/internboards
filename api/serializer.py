@@ -1,6 +1,7 @@
 from .models import *
 from rest_framework import permissions, serializers
 from django.contrib.auth.models import User
+from django.http import JsonResponse
 from .permissions import *
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -238,6 +239,23 @@ class InternshipSerializer(serializers.ModelSerializer):
             internship.skills.add(skill)
 
         return internship
+
+class InternshipReadSerializer(serializers.ModelSerializer):
+
+    company = CompanySerializer(read_only=True)
+    company_user =  serializers.PrimaryKeyRelatedField(many=False, queryset=Company_User.objects.all()) 
+    skills = serializers.SlugRelatedField(
+        many=True,
+        slug_field='name',
+        queryset=Skill.objects.all()
+    )
+
+    class Meta:
+        model =  Internship
+        fields = ['company','skills','company_user','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stripend','start','end','responsibilities','stripend','location','code','stripend_rate']
+   
+    def create(self, validated_data):
+        return JsonResponse({"error":"Not allowed to create"})
 
 '''
 class InternshipAvaliableSerializer(serializers.ModelSerializer):

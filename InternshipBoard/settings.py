@@ -90,9 +90,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'InternBoards',
-        'HOST':'sgp-81.rds.api-central.net',
-        'USER':'root',
-        'PASSWORD':'2j6pPjiVnhdPwysHfKvXSSO9',
+        'HOST':'internsboard.c4xcf7wgfcus.ap-southeast-1.rds.amazonaws.com',
+        'USER':'internsboard',
+        'PASSWORD':'1fmqAgEMSSJH9n0l8',
         'PORT':'3306',
     }
 }

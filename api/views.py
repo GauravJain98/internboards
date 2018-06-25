@@ -3,6 +3,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib import admin
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import rest_framework as filters
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, TokenHasScope
 from .serializer import *
@@ -59,6 +60,8 @@ class GithubList(viewsets.ModelViewSet):
     queryset = Github.objects.all()
     serializer_class = GithubSerializer
     pagination_class = BasicPagination
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('intern',)
 
 class CompanyList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
@@ -83,24 +86,37 @@ class DegreeList(viewsets.ModelViewSet):
     queryset = Degree.objects.all()
     serializer_class = DegreeSerializer     
     pagination_class = BasicPagination
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('intern',)
 
 class JobList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Job.objects.all()
     serializer_class = JobSerializer     
     pagination_class = BasicPagination
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('intern',)
+
 
 class ProjectList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer     
     pagination_class = BasicPagination
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('intern',)
 
 class InternshipList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Internship.objects.all()
-    serializer_class = InternshipSerializer
     pagination_class = BasicPagination
+    serializer_class = InternshipReadSerializer
+    def list(self,request):
+        serializer = InternshipReadSerializer(self.queryset, many=True)
+        return Response(serializer.data)
+    def create(self,request):
+        serializer = InternshipSerializer(self.queryset, many=True)
+        return Response(serializer.data)
 
 class SubmissionList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
