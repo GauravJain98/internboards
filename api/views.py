@@ -30,20 +30,22 @@ class BasicPagination(PageNumberPagination):
             'results': data
         })
 
+class UsernameFilterBackend(rffilter.BaseFilterBackend):
+    """
+    Filter that only allows users to see their own objects.
+    """
+    def filter_queryset(self, request, queryset, view):
+        if "username" in request.GET:
+            return queryset.filter(user__user__username=request.GET["username"])
+        else:
+            return queryset
+            
 class InternList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Intern.objects.all()
     serializer_class = InternSerializer
     pagination_class = BasicPagination
-
-class InternUsernameList(viewsets.ModelViewSet):
-    permissions_classes = (permissions.IsAuthenticated,)
-    queryset = Intern.objects.all()
-    serializer_class = InternSerializer
-    pagination_class = BasicPagination
-    def get_queryset(self):
-        queryset = self.queryset.filter(user__user__username = self.request.GET['username'])
-        return queryset
+    filter_backends = (UsernameFilterBackend,)
 
 class Company_UserList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)

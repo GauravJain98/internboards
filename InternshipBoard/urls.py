@@ -20,7 +20,6 @@ from rest_framework.routers import DefaultRouter
 from api import views
 
 router = DefaultRouter()
-router.register(r'intern/username', views.InternUsernameList)
 router.register(r'intern', views.InternList)
 router.register(r'companyuser', views.Company_UserList)
 router.register(r'category', views.CategoryList)
