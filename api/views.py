@@ -117,21 +117,23 @@ class DurationFilterBackend(rffilter.BaseFilterBackend):
     Filter that only allows users to see their own objects.
     """
     def filter_queryset(self, request, queryset, view):
-        if 'duration' in request.GET:
-            return queryset.filter(duration__lte=request.GET['duration'])
-        if 'start' in request.GET:
-            return queryset.filter(start__lte=request.GET['start'])
+        if "duration" in request.GET:
+            return queryset.filter(duration__lte=request.GET["duration"])
+        elif "start" in request.GET:
+            return queryset.filter(start__lte=request.GET["start"])
+        else:
+            return queryset
 
 class InternshipReadList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Internship.objects.all()
     pagination_class = BasicPagination
-    http_method_names = ['get',]
     serializer_class = InternshipReadSerializer
     filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,DurationFilterBackend)
     filter_fields = ('category','location','company','approved','skills','PPO','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
     search_fields = ('category', 'stipend','location','responsibilities','skills')
     ordering_fields = ('start', 'duration')
+
 
 class InternshipList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)

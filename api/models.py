@@ -88,6 +88,11 @@ class Degree(models.Model):
     ) 
     def __str__(self):
         return str(self.id)
+
+    def save(self, *args, **kwargs):
+        if self.start < self.end:
+            super().save(*args, **kwargs)
+
 ##
 class Job(models.Model):
     position = models.CharField(max_length =60,blank=False)
@@ -102,6 +107,11 @@ class Job(models.Model):
     )
     def __str__(self):
         return str(self.id)
+
+    def save(self, *args, **kwargs):
+        if self.start < self.end:
+            super().save(*args, **kwargs)
+
 ##
 class Project(models.Model):
     name = models.CharField(max_length =60,blank=False)
@@ -114,6 +124,10 @@ class Project(models.Model):
     )
     def __str__(self):
         return str(self.id)
+        
+    def save(self, *args, **kwargs):
+        if self.start < self.end:
+            super().save(*args, **kwargs)
 
 #MainApp
 
