@@ -5,6 +5,7 @@ from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import rest_framework as filters
+from rest_framework import filters as filterr
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, TokenHasScope
 from .serializer import *
 from rest_framework.pagination import PageNumberPagination
@@ -68,6 +69,10 @@ class CompanyList(viewsets.ModelViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer     
     pagination_class = BasicPagination
+    filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,)
+    filter_fields = ('name','email',)
+    search_fields = ('name', 'email')
+    ordering_fields = ('name', 'email')
 
 class SiteAdminList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,permissions.IsAdminUser)
@@ -111,6 +116,8 @@ class InternshipList(viewsets.ModelViewSet):
     queryset = Internship.objects.all()
     pagination_class = BasicPagination
     serializer_class = InternshipReadSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('company',)
     def list(self,request):
         serializer = InternshipReadSerializer(self.queryset, many=True)
         return Response(serializer.data)

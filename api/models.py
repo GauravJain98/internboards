@@ -158,7 +158,7 @@ class Company_User(models.Model):
     is_active = models.BooleanField(default = 'False')
     is_HR = models.BooleanField(default = 'True')
     added_user = models.ForeignKey(
-        'api.Company_User',
+        User,
         on_delete=models.CASCADE,
         verbose_name = 'User',
         null = True,
@@ -240,7 +240,7 @@ class Internship(models.Model):
         if self.denied and self.approved:
             self.denied =False
             self.approved = False
-        super().save(*args, **kwargs)
+        super(Internship,self).save(*args, **kwargs)
 
 STATUS_TYPE = (
     ('0','Rejected'),

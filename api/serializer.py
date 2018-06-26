@@ -12,7 +12,7 @@ class AddressSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name','password')
+        fields = ('username', 'email', 'first_name', 'last_name')
         write_only = ('password')
 
 class Custom_UserSerializer(serializers.ModelSerializer):
@@ -82,7 +82,7 @@ class CollegeSerializer(serializers.ModelSerializer):
 class Company_UserSerializer(serializers.ModelSerializer):
 
     user = Custom_UserSerializer(required=True)
-    added_user = serializers.PrimaryKeyRelatedField(many=False, queryset=Company_User.objects.all())    
+    added_user = serializers.PrimaryKeyRelatedField(many=False, queryset=User.objects.all())    
     company = serializers.PrimaryKeyRelatedField(many=False, queryset=Company.objects.all())    
 
     class Meta:
@@ -96,7 +96,7 @@ class Company_UserSerializer(serializers.ModelSerializer):
 
         user = Custom_UserSerializer.create(Custom_UserSerializer(), validated_data=user_data)
 
-        company_user ,created = Company_User.objects.update_or_create(user = user ,company=company ,added_user = added_user, **validated_data) 
+        company_user ,created = Company_User.objects.update_or_create(user = user ,company=company_data ,added_user = added_user_data, **validated_data) 
         return company_user
 
 class InternSerializer(serializers.ModelSerializer):
@@ -227,7 +227,7 @@ class InternshipSerializer(serializers.ModelSerializer):
 
     class Meta:
         model =  Internship
-        fields = ['company','skills','company_user','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stripend','start','end','responsibilities','stripend','location','code','stripend_rate']
+        fields = ['company','skills','company_user','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stripend','start','duration','responsibilities','stripend','location','code','stripend_rate']
    
     def create(self, validated_data):
         skills_data = validated_data.pop('skills')
@@ -252,7 +252,7 @@ class InternshipReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model =  Internship
-        fields = ['company','skills','company_user','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stripend','start','end','responsibilities','stripend','location','code','stripend_rate']
+        fields = ['company','skills','company_user','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stripend','start','duration','responsibilities','stripend','location','code','stripend_rate']
    
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})
