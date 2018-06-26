@@ -291,6 +291,15 @@ class SubmissionSerializer(serializers.ModelSerializer):
         model = Submission
         fields = ['id', 'intern','college','internship','status','selected']
 
+class SubmissionInternReadSerializer(serializers.ModelSerializer):
+
+    intern =serializers.PrimaryKeyRelatedField(many=False, queryset=Intern.objects.all())    
+    internship =InternshipReadSerializer(read_only=True)
+
+    class Meta:
+        model = Submission
+        fields = ['id', 'intern','college','internship','status','selected']
+
 class QuestionSerializer(serializers.ModelSerializer):
 
     internship =serializers.PrimaryKeyRelatedField(many=False, queryset=Internship.objects.all())    

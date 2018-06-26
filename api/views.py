@@ -149,6 +149,17 @@ class SubmissionList(viewsets.ModelViewSet):
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
     pagination_class = BasicPagination
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('intern',)
+    
+class SubmissionInternReadList(viewsets.ModelViewSet):
+    permissions_classes = (permissions.IsAuthenticated,)
+    queryset = Submission.objects.all()
+    serializer_class = SubmissionInternReadSerializer
+    pagination_class = BasicPagination
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('intern',)
+
 
 class QuestionList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
