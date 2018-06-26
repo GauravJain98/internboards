@@ -3,6 +3,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib import admin
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
+from rest_framework import filters as rffilter
 from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import rest_framework as filters
 from rest_framework import filters as filterr
@@ -111,15 +112,25 @@ class ProjectList(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('intern',)
 
+class DurationFilterBackend(rffilter.BaseFilterBackend):
+    """
+    Filter that only allows users to see their own objects.
+    """
+    def filter_queryset(self, request, queryset, view):
+        if 'duration' in request.GET:
+            return queryset.filter(duration__lte=request.GET['duration'])
+        if 'start' in request.GET:
+            return queryset.filter(start__lte=request.GET['start'])
+
 class InternshipReadList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Internship.objects.all()
     pagination_class = BasicPagination
     http_method_names = ['get',]
     serializer_class = InternshipReadSerializer
-    filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,)
-    filter_fields = ('catagory','duration','company','start','approved','skills','PPO','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
-    search_fields = ('catagory', 'stipend','location','responsibilities','skills')
+    filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,DurationFilterBackend)
+    filter_fields = ('category','location','company','approved','skills','PPO','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
+    search_fields = ('category', 'stipend','location','responsibilities','skills')
     ordering_fields = ('start', 'duration')
 
 class InternshipList(viewsets.ModelViewSet):

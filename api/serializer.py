@@ -67,6 +67,14 @@ class CompanySerializer(serializers.ModelSerializer):
             company.hiring.add(hiring)
         return company
 
+class CompanyReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
+        fields = ('id','name',)
+
+    def create(self,validated_data):
+        pass
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
@@ -233,7 +241,7 @@ class InternshipSerializer(serializers.ModelSerializer):
 
     class Meta:
         model =  Internship
-        fields = ['id','company','skills','company_user','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stripend','start','duration','responsibilities','stripend_rate','location']
+        fields = ['id','category','company','skills','company_user','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','start','duration','responsibilities','stipend_rate','location']
    
     def create(self, validated_data):
         skills_data = validated_data.pop('skills')
@@ -250,7 +258,7 @@ class InternshipSerializer(serializers.ModelSerializer):
 
 class InternshipReadSerializer(serializers.ModelSerializer):
 
-    company = CompanySerializer(read_only=True)
+    company = CompanyReadSerializer(read_only=True)
     company_user =  serializers.PrimaryKeyRelatedField(many=False, queryset=Company_User.objects.all()) 
     skills = serializers.SlugRelatedField(
         many=True,
@@ -260,7 +268,7 @@ class InternshipReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model =  Internship
-        fields = ['id','company','skills','company_user','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stripend','start','duration','responsibilities','stripend','location','code','stripend_rate']
+        fields = ['id','category','company','skills','company_user','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','start','duration','responsibilities','stipend','location','code','stipend_rate']
    
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})
