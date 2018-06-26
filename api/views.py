@@ -111,19 +111,22 @@ class ProjectList(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('intern',)
 
-class InternshipList(viewsets.ModelViewSet):
+class InternshipReadList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Internship.objects.all()
     pagination_class = BasicPagination
     serializer_class = InternshipReadSerializer
-    filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('company',)
-    def list(self,request):
-        serializer = InternshipReadSerializer(self.queryset, many=True)
-        return Response(serializer.data)
-    def create(self,request):
-        serializer = InternshipSerializer(self.queryset, many=True)
-        return Response(serializer.data)
+    filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,)
+    filter_fields = ('company','start','approved','skills','PPO','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
+    search_fields = ('catagory', 'stipend','location','responsibilities','skills')
+    ordering_fields = ('start', 'duration')
+
+class InternshipList(viewsets.ModelViewSet):
+    permissions_classes = (permissions.IsAuthenticated,)
+    queryset = Internship.objects.all()
+    pagination_class = BasicPagination
+    serializer_class = InternshipSerializer
+
 
 class SubmissionList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)

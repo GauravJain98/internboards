@@ -75,8 +75,8 @@ class Github(models.Model):
 ##
 class Degree(models.Model):
     college_name = models.CharField(max_length=60,blank=False)
-    start = models.DateField(("Date"), default=datetime.date.today)
-    end= models.DateField(("Date"), default=datetime.date.today)
+    start = models.DateField( default=datetime.date.today)
+    end= models.DateField( default=datetime.date.today)
     performance = models.CharField(max_length=3,blank=False)
     name =models.CharField(max_length= 20,default = 'None')
     type_of_degree =models.CharField(max_length= 20,default = 'None')
@@ -93,8 +93,8 @@ class Job(models.Model):
     position = models.CharField(max_length =60,blank=False)
     organization = models.CharField(max_length =90,blank=False)
     location = models.CharField(max_length =90,blank=False)
-    start = models.DateField(("Date"), default=datetime.date.today)
-    end= models.DateField(("Date"), default=datetime.date.today)
+    start = models.DateField(default=datetime.date.today)
+    end= models.DateField( default=datetime.date.today)
     description = models.TextField()
     intern = models.ForeignKey(
         Intern,
@@ -105,8 +105,8 @@ class Job(models.Model):
 ##
 class Project(models.Model):
     name = models.CharField(max_length =60,blank=False)
-    start = models.DateField(("Date"), default=datetime.date.today)
-    end= models.DateField(("Date"), default=datetime.date.today)
+    start = models.DateField( default=datetime.date.today)
+    end= models.DateField( default=datetime.date.today)
     description = models.TextField()
     intern = models.ForeignKey(
         Intern,
@@ -235,12 +235,6 @@ class Internship(models.Model):
     )
     def __str__(self):
         return str(self.id)
-    def save(self, *args, **kwargs):
-        self.code = random_n(4)
-        if self.denied and self.approved:
-            self.denied =False
-            self.approved = False
-        super(Internship,self).save(*args, **kwargs)
 
 STATUS_TYPE = (
     ('0','Rejected'),
