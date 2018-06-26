@@ -115,9 +115,10 @@ class InternshipReadList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Internship.objects.all()
     pagination_class = BasicPagination
+    http_method_names = ['get',]
     serializer_class = InternshipReadSerializer
     filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,)
-    filter_fields = ('company','start','approved','skills','PPO','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
+    filter_fields = ('catagory','duration','company','start','approved','skills','PPO','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
     search_fields = ('catagory', 'stipend','location','responsibilities','skills')
     ordering_fields = ('start', 'duration')
 

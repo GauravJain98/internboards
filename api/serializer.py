@@ -12,8 +12,14 @@ class AddressSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name')
-        write_only = ('password')
+        fields = ('username', 'email', 'first_name', 'last_name','password')
+        extra_kwargs = {'password': {'write_only': True}}
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        user, created = User.objects.get_or_create(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
 
 class Custom_UserSerializer(serializers.ModelSerializer):
     """ 
