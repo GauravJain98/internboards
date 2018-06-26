@@ -273,6 +273,17 @@ class InternshipReadSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})
 
+class InternshipReadSubSerializer(serializers.ModelSerializer):
+
+    company = CompanyReadSerializer(read_only=True)
+
+    class Meta:
+        model =  Internship
+        fields = ['id','category','company','applications',]
+   
+    def create(self, validated_data):
+        return JsonResponse({"error":"Not allowed to create"})
+
 '''
 class InternshipAvaliableSerializer(serializers.ModelSerializer):
 
@@ -294,7 +305,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
 class SubmissionInternReadSerializer(serializers.ModelSerializer):
 
     intern =serializers.PrimaryKeyRelatedField(many=False, queryset=Intern.objects.all())    
-    internship =InternshipReadSerializer(read_only=True)
+    internship =InternshipReadSubSerializer(read_only=True)
 
     class Meta:
         model = Submission
