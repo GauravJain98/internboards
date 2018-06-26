@@ -119,10 +119,10 @@ class DurationFilterBackend(rffilter.BaseFilterBackend):
     Filter that only allows users to see their own objects.
     """
     def filter_queryset(self, request, queryset, view):
-        if "duration" in request.GET:
+        if "duration" in request.GET and request.GET['duration'] != '':
             return queryset.filter(duration__lte=request.GET["duration"])
-        elif "start" in request.GET:
-            return queryset.filter(start__lte=request.GET["start"])
+        elif "start" in request.GET and request.GET['start'] != '':
+            return queryset.filter(start__gte=request.GET["start"])
         else:
             return queryset
 
