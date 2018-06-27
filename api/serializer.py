@@ -262,7 +262,7 @@ class InternshipSerializer(serializers.ModelSerializer):
         skills_data = validated_data.pop('skills')
         company_data = validated_data.pop('company')
         company_user_data = validated_data.pop('company_user')
-        internship ,created = Internship.objects.create(company_user = company_user_data ,company = company_data , **validated_data) 
+        internship = Internship.objects.create(company_user = company_user_data ,company = company_data , **validated_data) 
 
         for skill in skills_data:
             internship.skills.add(skill)
@@ -283,11 +283,16 @@ class InternshipReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model =  Internship
-        fields = ['id','category','company','skills','company_user','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','start','duration','responsibilities','stipend','location','code','stipend_rate']
-   
+        fields = ['id','category','company','skills','company_user','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','start','duration','responsibilities','stipend','location','stipend_rate','code']
    
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})
+
+    def to_representation(self, instance):
+        instance.id = str(instance.id) + instance.code
+        instance.code = None
+        ret = super().to_representation(instance)
+        return ret
 
 class InternshipReadSubSerializer(serializers.ModelSerializer):
 
@@ -349,8 +354,8 @@ class AnswerSerializer(serializers.ModelSerializer):
 
     submission =serializers.PrimaryKeyRelatedField(many=False, queryset=Submission.objects.all())    
     question =serializers.PrimaryKeyRelatedField(many=False, queryset=Question.objects.all())    
-
     class Meta:
         model = Answer
+        validators = []
         fields = ['id', 'submission','question','answer_text']
 

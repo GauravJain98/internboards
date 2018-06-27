@@ -170,9 +170,27 @@ class QuestionList(viewsets.ModelViewSet):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
     pagination_class = BasicPagination
-
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('submission',)
+    
 class AnswerList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Answer.objects.all()
     serializer_class = AnswerSerializer
     pagination_class = BasicPagination
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('question',)
+    def create(self, request, *args, **kwargs):
+        """
+        #checks if post request data is an array initializes serializer with many=True
+        else executes default CreateModelMixin.create function 
+        """
+        is_many = isinstance(request.data, list)
+        if not is_many:
+            return super(AnswerSerializer, self).create(request, *args, **kwargs)
+        else:
+            serializer = self.get_serializer(data=request.data, many=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

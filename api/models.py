@@ -247,6 +247,9 @@ class Internship(models.Model):
         on_delete=models.PROTECT,
         verbose_name = 'Company User',
     )
+    def save(self, *args, **kwargs):
+        self.code = random_n(4)
+        super().save(*args, **kwargs)
     def __str__(self):
         return str(self.id)
 
