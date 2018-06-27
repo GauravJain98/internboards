@@ -173,6 +173,11 @@ class DegreeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Degree
         fields = ['id', 'intern','college_name','start','end','performance','name','type_of_degree','specialise']
+    
+    def validate(self, data):
+        if data['start'] > data['end']:
+            raise serializers.ValidationError("finish must occur after start")
+        return data
 
     def create(self, validated_data):
 
@@ -188,6 +193,11 @@ class JobSerializer(serializers.ModelSerializer):
     class Meta:
         model = Job
         fields = ['id', 'intern','position','organization','location','start','end','description']
+    
+    def validate(self, data):
+        if data['start'] > data['end']:
+            raise serializers.ValidationError("finish must occur after start")
+        return data
 
     def create(self, validated_data):
 
@@ -203,11 +213,16 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ['id', 'intern','name','start','end','description']
+    
+    def validate(self, data):
+        if data['start'] > data['end']:
+            raise serializers.ValidationError("finish must occur after start")
+        return data
 
     def create(self, validated_data):
 
         intern_data = validated_data.pop('intern')
-        project ,created = Project.objects.update_or_create(intern = intern, **validated_data) 
+        project ,created = Project.objects.update_or_create(intern = intern_data, **validated_data) 
 
         return project
 '''
@@ -247,7 +262,7 @@ class InternshipSerializer(serializers.ModelSerializer):
         skills_data = validated_data.pop('skills')
         company_data = validated_data.pop('company')
         company_user_data = validated_data.pop('company_user')
-        internship ,created = Internship.objects.update_or_create(company_user = company_user_data ,company = company_data , **validated_data) 
+        internship ,created = Internship.objects.create(company_user = company_user_data ,company = company_data , **validated_data) 
 
         for skill in skills_data:
             internship.skills.add(skill)
@@ -269,6 +284,7 @@ class InternshipReadSerializer(serializers.ModelSerializer):
     class Meta:
         model =  Internship
         fields = ['id','category','company','skills','company_user','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','start','duration','responsibilities','stipend','location','code','stipend_rate']
+   
    
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})
@@ -300,7 +316,14 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Submission
-        fields = ['id', 'intern','college','internship','status','selected']
+        fields = ['id', 'intern','college','internship','status']
+        
+    def validate(self, data):
+        if self.context['request'].method != 'PATCH':
+            if Submission.objects.filter(intern = data['intern'] , internship = data['internship'],college = data['college']).exists():
+                raise serializers.ValidationError("Already applied")
+            return data
+        return data
 
 class SubmissionInternReadSerializer(serializers.ModelSerializer):
 
@@ -310,6 +333,9 @@ class SubmissionInternReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submission
         fields = ['id', 'intern','college','internship','status','selected']
+        
+    def create(self, validated_data):
+        return JsonResponse({"error":"Not allowed to create"})
 
 class QuestionSerializer(serializers.ModelSerializer):
 

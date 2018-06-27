@@ -1,19 +1,15 @@
 from django.urls import path, include
 from django.contrib.auth.models import User, Group
 from django.contrib import admin
+from rest_framework import viewsets, permissions
+from rest_framework.response import Response
+from rest_framework import filters as rffilter
 from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import rest_framework as filters
-from rest_framework.decorators import action
-from rest_framework import viewsets, permissions, status
-from rest_framework import filters as rffilter
-# refactor this
-from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.views import APIView
 from rest_framework import filters as filterr
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, TokenHasScope
 from .serializer import *
-from django.http import Http404
+from rest_framework.pagination import PageNumberPagination
 
 
 class UserFilter(filters.FilterSet):
@@ -25,10 +21,8 @@ class UserFilter(filters.FilterSet):
 class BasicPagination(PageNumberPagination):
     page_size_query_param = 'limit'
     max_page_size = 20
-    
     def get_paginated_response(self, data):
-        return Response({
-            'count':len(data),
+         return Response({
             'links': {
                 'next': self.get_next_link(),
                 'previous': self.get_previous_link()
@@ -141,6 +135,7 @@ class InternshipReadList(viewsets.ModelViewSet):
     search_fields = ('category', 'stipend','location','responsibilities','skills')
     ordering_fields = ('start', 'duration')
 
+
 class InternshipList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Internship.objects.all()
@@ -154,7 +149,7 @@ class SubmissionList(viewsets.ModelViewSet):
     serializer_class = SubmissionSerializer
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('intern','status')
+    filter_fields = ('intern',)
     
 class SubmissionInternReadList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
