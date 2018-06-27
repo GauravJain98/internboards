@@ -8,12 +8,12 @@ from rest_framework import viewsets, permissions, status
 from rest_framework import filters as rffilter
 # refactor this
 from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
 from rest_framework import filters as filterr
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, TokenHasScope
 from .serializer import *
 from django.http import Http404
+from .pagination import *
 
 class DurationFilterBackend(filterr.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
@@ -44,19 +44,6 @@ class UsernameFilterBackend(filterr.BaseFilterBackend):
         else:
             return queryset
 
-class BasicPagination(PageNumberPagination):
-    page_size_query_param = 'limit'
-    max_page_size = 20
-    
-    def get_paginated_response(self, data):
-        return Response({
-            'count':len(data),
-            'links': {
-                'next': self.get_next_link(),
-                'previous': self.get_previous_link()
-            },
-            'results': data
-        })
             
 class InternList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
