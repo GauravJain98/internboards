@@ -132,7 +132,6 @@ class InternshipReadList(viewsets.ModelViewSet):
 class InternshipList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Internship.objects.all()
-    pagination_class = BasicPagination
     serializer_class = InternshipSerializer
 
 

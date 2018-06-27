@@ -108,7 +108,15 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
     'DEFAULT_PAGINATION_CLASS': 'api.pagination.BasicPagination',
-    'PAGE_SIZE': 20
+    'PAGE_SIZE': 20,
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '10/second',
+        'user': '1000/second'
+    }
     #'DEFAULT_PERMISSION_CLASSES': (
     #   'rest_framework.permissions.IsAuthenticated',
     #)
