@@ -300,11 +300,16 @@ class InternshipReadSubSerializer(serializers.ModelSerializer):
 
     class Meta:
         model =  Internship
-        fields = ['id','category','company','applications',]
+        fields = ['id','category','company','applications','code']
    
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})
 
+    def to_representation(self, instance):
+        instance.id = str(instance.id) + instance.code
+        instance.code = None
+        ret = super().to_representation(instance)
+        return ret
 '''
 class InternshipAvaliableSerializer(serializers.ModelSerializer):
 

@@ -15,12 +15,34 @@ from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, Token
 from .serializer import *
 from django.http import Http404
 
+class DurationFilterBackend(filterr.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        if "duration" in request.GET and request.GET['duration'] != '':
+            return queryset.filter(duration__lte=request.GET["duration"])
+        elif "start" in request.GET and request.GET['start'] != '':
+            return queryset.filter(start__gte=request.GET["start"])
+        else:
+            return queryset
 
-class UserFilter(filters.FilterSet):
+class CodeIdFilterBackend(filterr.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        if 'id' in request.GET:
+            id = request.GET['id']
+            code = id[-4:]
+            id = id[:-4]
+            queryset = queryset.filter(id = id,code=code)
+            if len(list(queryset)) >0:
+                return queryset
+            else:
+                return NotFound()
+        return queryset
 
-    class Meta:
-        model = User
-        fields = ['username']
+class UsernameFilterBackend(filterr.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        if "username" in request.GET:
+            return queryset.filter(user__user__username=request.GET["username"])
+        else:
+            return queryset
 
 class BasicPagination(PageNumberPagination):
     page_size_query_param = 'limit'
@@ -35,16 +57,6 @@ class BasicPagination(PageNumberPagination):
             },
             'results': data
         })
-
-class UsernameFilterBackend(rffilter.BaseFilterBackend):
-    """
-    Filter that only allows users to see their own objects.
-    """
-    def filter_queryset(self, request, queryset, view):
-        if "username" in request.GET:
-            return queryset.filter(user__user__username=request.GET["username"])
-        else:
-            return queryset
             
 class InternList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
@@ -119,24 +131,13 @@ class ProjectList(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('intern',)
 
-class DurationFilterBackend(rffilter.BaseFilterBackend):
-    """
-    Filter that only allows users to see their own objects.
-    """
-    def filter_queryset(self, request, queryset, view):
-        if "duration" in request.GET and request.GET['duration'] != '':
-            return queryset.filter(duration__lte=request.GET["duration"])
-        elif "start" in request.GET and request.GET['start'] != '':
-            return queryset.filter(start__gte=request.GET["start"])
-        else:
-            return queryset
 
 class InternshipReadList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Internship.objects.all()
     pagination_class = BasicPagination
     serializer_class = InternshipReadSerializer
-    filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,DurationFilterBackend)
+    filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,DurationFilterBackend,CodeIdFilterBackend)
     filter_fields = ('category','location','company','approved','skills','PPO','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
     search_fields = ('category', 'stipend','location','responsibilities','skills')
     ordering_fields = ('start', 'duration')
