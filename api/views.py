@@ -75,8 +75,7 @@ class GithubList(viewsets.ModelViewSet):
 class CompanyList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Company.objects.all()
-    serializer_class = CompanySerializer     
-    pagination_class = BasicPagination
+    serializer_class = CompanySerializer
     filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,)
     filter_fields = ('name','email',)
     search_fields = ('name', 'email')
@@ -85,36 +84,31 @@ class CompanyList(viewsets.ModelViewSet):
 class SiteAdminList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,permissions.IsAdminUser)
     queryset = SiteAdmin.objects.all()
-    serializer_class = SiteAdminSerializer     
-    pagination_class = BasicPagination
+    serializer_class = SiteAdminSerializer
 
 class SkillList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Skill.objects.all()
-    serializer_class = SkillSerializer     
-    pagination_class = BasicPagination
+    serializer_class = SkillSerializer
 
 class DegreeList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Degree.objects.all()
-    serializer_class = DegreeSerializer     
-    pagination_class = BasicPagination
+    serializer_class = DegreeSerializer
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('intern',)
 
 class JobList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Job.objects.all()
-    serializer_class = JobSerializer     
-    pagination_class = BasicPagination
+    serializer_class = JobSerializer
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('intern',)
 
 class ProjectList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Project.objects.all()
-    serializer_class = ProjectSerializer     
-    pagination_class = BasicPagination
+    serializer_class = ProjectSerializer
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('intern',)
 

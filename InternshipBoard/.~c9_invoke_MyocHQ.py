@@ -114,7 +114,7 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle'
     ),
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '1000/day',
+        'anon': '10/second',
         'user': '1000/second'
     }
     #'DEFAULT_PERMISSION_CLASSES': (

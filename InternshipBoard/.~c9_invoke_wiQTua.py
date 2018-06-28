@@ -115,7 +115,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_THROTTLE_RATES': {
         'anon': '1000/day',
-        'user': '1000/second'
+        'user': '10/second'
     }
     #'DEFAULT_PERMISSION_CLASSES': (
     #   'rest_framework.permissions.IsAuthenticated',
