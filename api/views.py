@@ -77,7 +77,7 @@ class CompanyList(viewsets.ModelViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
     filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,)
-    filter_fields = ('name','email',)
+    filter_fields = ('id','email',)
     search_fields = ('name', 'email')
     ordering_fields = ('name', 'email')
 
@@ -152,7 +152,7 @@ class QuestionList(viewsets.ModelViewSet):
     serializer_class = QuestionSerializer
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('submission',)
+    filter_fields = ('internship',)
     
 class AnswerList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)

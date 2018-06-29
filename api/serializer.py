@@ -54,7 +54,7 @@ class CompanySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Company
-        fields = ('name','hiring','website','email','description','address','city')
+        fields = ('id','name','hiring','website','email','description','address','city')
 
     def create(self,validated_data):
         hiring_data = validated_data.pop('hiring')
@@ -353,7 +353,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Question
-        fields = ['id', 'internship','question']
+        fields = ['id', 'internship','question',]
 
 class AnswerSerializer(serializers.ModelSerializer):
 
