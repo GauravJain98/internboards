@@ -231,7 +231,7 @@ class Internship(models.Model):
     stipend = models.CharField(max_length=6,default = "0")
     location = models.CharField(max_length = 50,default = "New Delhi")
     code = models.CharField(max_length = 4,null=False,blank=True)
-#    id_code = models.CharField(max_length=20,null=False,blank=True)
+    id_code = models.CharField(max_length=20,null=False,blank=True)
     available = models.ManyToManyField(College , related_name='internships')
     skills = models.ManyToManyField(Skill,
     null=True,
@@ -250,7 +250,7 @@ class Internship(models.Model):
     )
     def save(self, *args, **kwargs):
         self.code = random_n(4)
-#        self.id_code = self.id + self.code
+        self.id_code = self.id + self.code
         super().save(*args, **kwargs)
     def __str__(self):
         return str(self.id)
