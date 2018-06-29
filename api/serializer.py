@@ -322,7 +322,11 @@ class InternshipAvaliableSerializer(serializers.ModelSerializer):
 class SubmissionSerializer(serializers.ModelSerializer):
 
     intern =serializers.PrimaryKeyRelatedField(many=False, queryset=Intern.objects.all())    
-    internship =serializers.PrimaryKeyRelatedField(many=False, queryset=Internship.objects.all())    
+    internship =serializers.SlugRelatedField(
+        many=False,
+        slug_field='id_code',
+        queryset=Internship.objects.all()
+    )
 
     class Meta:
         model = Submission
@@ -349,12 +353,16 @@ class SubmissionInternReadSerializer(serializers.ModelSerializer):
 
 class QuestionSerializer(serializers.ModelSerializer):
 
-    internship =serializers.PrimaryKeyRelatedField(many=False, queryset=Internship.objects.all())    
+    internship =serializers.SlugRelatedField(
+        many=False,
+        slug_field='id_code',
+        queryset=Internship.objects.all()
+    )
 
     class Meta:
         model = Question
         fields = ['id', 'internship','question',]
-
+        
 class AnswerSerializer(serializers.ModelSerializer):
 
     submission =serializers.PrimaryKeyRelatedField(many=False, queryset=Submission.objects.all())    

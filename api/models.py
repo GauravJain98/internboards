@@ -16,7 +16,6 @@ class Address(models.Model):
     city = models.CharField(max_length=10,blank=False)
     zip_code = models.CharField(max_length=8,blank=False)
     country = models.CharField(max_length=50,blank=False)
-    
 
 class College(models.Model):
     name = models.CharField(max_length=200,blank=False)
@@ -230,7 +229,7 @@ class Internship(models.Model):
     responsibilities = models.TextField(blank=False , default="")
     stipend = models.CharField(max_length=6,default = "0")
     location = models.CharField(max_length = 50,default = "New Delhi")
-    code = models.CharField(max_length = 4,null=False,blank=True)
+    code = models.CharField(max_length = 4,null=False,blank=True,default = "")
     id_code = models.CharField(max_length=20,null=False,blank=True)
     available = models.ManyToManyField(College , related_name='internships')
     skills = models.ManyToManyField(Skill,
@@ -249,9 +248,10 @@ class Internship(models.Model):
         verbose_name = 'Company User',
     )
     def save(self, *args, **kwargs):
-        self.code = random_n(4)
-        self.id_code = self.id + self.code
+        if self.code == "":
+            self.code = random_n(4)
         super().save(*args, **kwargs)
+
     def __str__(self):
         return str(self.id)
 
@@ -278,6 +278,9 @@ class Submission(models.Model):
     selected = models.BooleanField(default = 'False')
     def __str__(self):
         return str(self.id)
+
+    class Meta:
+        unique_together = (("internship", "intern"),)
 ##
 class Question(models.Model):
     question = models.CharField(max_length=50,default='',blank=False)

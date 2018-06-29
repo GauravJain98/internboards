@@ -44,5 +44,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path('login/', include('clientSide.urls')),
+    path('update/', views.update),
     url(r'^', include(router.urls))
 ]

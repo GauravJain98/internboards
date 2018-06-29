@@ -24,6 +24,13 @@ class DurationFilterBackend(filterr.BaseFilterBackend):
         else:
             return queryset
 
+class InternshipFilterBackend(filterr.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        if "internship" in request.GET and request.GET['internship'] != '':
+            return queryset.filter(internship__id_code=request.GET["internship"])
+        else:
+            return queryset
+
 class CodeIdFilterBackend(filterr.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         if 'id' in request.GET:
@@ -128,6 +135,11 @@ class InternshipList(viewsets.ModelViewSet):
     queryset = Internship.objects.all()
     serializer_class = InternshipSerializer
 
+def update(request):
+    for i in Internship.objects.all():
+        i.id_code = str(i.id) + str(i.code)
+        i.save()
+    return Http404
 
 class SubmissionList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
@@ -142,18 +154,16 @@ class SubmissionInternReadList(viewsets.ModelViewSet):
     queryset = Submission.objects.all()
     serializer_class = SubmissionInternReadSerializer
     pagination_class = BasicPagination
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend,InternshipFilterBackend,)
     filter_fields = ('intern',)
-
 
 class QuestionList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
     pagination_class = BasicPagination
-    filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('internship',)
-    
+    filter_backends = (InternshipFilterBackend,)
+
 class AnswerList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Answer.objects.all()
