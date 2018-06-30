@@ -297,6 +297,7 @@ class Answer(models.Model):
         Submission,
         on_delete=models.CASCADE,
         verbose_name = 'Submission',
+        null=True,
     )
     answer_text = models.TextField(blank=False , default = "")
     question = models.ForeignKey(

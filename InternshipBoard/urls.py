@@ -27,6 +27,7 @@ router.register(r'github', views.GithubList)
 router.register(r'company', views.CompanyList)
 router.register(r'siteadmin', views.SiteAdminList)
 router.register(r'skill', views.SkillList)
+router.register(r'submit', views.Submit)
 router.register(r'degree', views.DegreeList)
 router.register(r'job', views.JobList)
 router.register(r'project', views.ProjectList)
@@ -46,5 +47,6 @@ urlpatterns = [
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path('login/', include('clientSide.urls')),
     path('update/', views.update),
+#    path('submit/', views.submit),
     url(r'^', include(router.urls))
 ]

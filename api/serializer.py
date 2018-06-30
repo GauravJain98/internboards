@@ -377,13 +377,57 @@ class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = ['id', 'internship','question',]
-        
+'''
 class AnswerSerializer(serializers.ModelSerializer):
 
-    submission =serializers.PrimaryKeyRelatedField(many=False, queryset=Submission.objects.all())    
+    submission = SubmissionSerializer(required = True)
     question =serializers.PrimaryKeyRelatedField(many=False, queryset=Question.objects.all())    
     class Meta:
         model = Answer
         validators = []
         fields = ['id', 'submission','question','answer_text']
+    def create(self, validated_data):
+        submission_data = validated_data.pop('submission')
+        answers_data = validated_data.pop('answers')
+        question = answers_data['question']
+#        internship = Submission.objects.select_related('int')
+        submission = SubmissionSerializer.create(SubmissionSerializer(), validated_data=submission_data)
+#        answer = AnswerSerializer.create(AnswerSerializer(), validated_data=answer_data)
+        for answer in answers_data:
+            answer = Answer.objects.create(submission = submission , answer_text = answer['answer_text'],question = answer['question'])
+            answer.save()
+        return submission
+'''
+class AnswerSerializer(serializers.ModelSerializer):
+
+    submission =serializers.PrimaryKeyRelatedField(many=False, queryset=Submission.objects.all(),required=False)    
+    question =serializers.PrimaryKeyRelatedField(many=False, queryset=Question.objects.all())    
+    class Meta:
+        model = Answer
+        validators = []
+        fields = ['id', 'submission','question','answer_text']
+
+class SubmitSerializer(serializers.Serializer):
+    submission = SubmissionSerializer(required = True)
+    answers = AnswerSerializer(many=True)
+
+    def validate(self, data):
+        if self.context['request'].method == 'POST':
+            question = Question.objects.filter(internship= data["submission"]["internship"])
+            for answer in data['answers']:
+                if answer['question'] not in question:
+                    raise serializers.ValidationError("Invalid Question")
+            return data
+        raise serializers.ValidationError("Method Not allowed")
+
+    def create(self, validated_data):
+        submission_data = validated_data.pop('submission')
+        answers_data = validated_data.pop('answers')
+        final_answers = []
+        submission = SubmissionSerializer.create(SubmissionSerializer(), validated_data=submission_data)
+        for answer in answers_data:
+            answer = Answer.objects.create(submission = submission , answer_text = answer['answer_text'],question = answer['question'])
+            answer.save()
+            final_answers.append(answer)
+        return {'submission':submission,'answers':final_answers}
 

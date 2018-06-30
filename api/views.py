@@ -1,11 +1,13 @@
 from django.contrib.auth.models import User, Group
 from django.contrib import admin
+from django.views.decorators.csrf import csrf_exempt
 from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import rest_framework as filters
 from rest_framework.decorators import action
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, permissions, status, generics
 from rest_framework import filters as rffilter
 # refactor this
+from drf_multiple_model.views import ObjectMultipleModelAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import filters as filterr
@@ -91,22 +93,26 @@ class SiteAdminList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,permissions.IsAdminUser)
     queryset = SiteAdmin.objects.all()
     serializer_class = SiteAdminSerializer
+    pagination_class = BasicPagination
 
 class SkillList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
 
+
 class DegreeList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Degree.objects.all()
     serializer_class = DegreeSerializer
+    pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('intern',)
 
 class JobList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Job.objects.all()
+    pagination_class = BasicPagination
     serializer_class = JobSerializer
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('intern',)
@@ -115,6 +121,7 @@ class ProjectList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
+    pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('intern',)
 
@@ -154,7 +161,11 @@ class SubmissionInternReadList(viewsets.ModelViewSet):
     serializer_class = SubmissionInternReadSerializer
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,InternshipFilterBackend,)
-    filter_fields = ('intern',)
+    filter_fields = ('intern','status',)
+
+class Submit(viewsets.ModelViewSet):
+    queryset = Submission.objects.all()
+    serializer_class = SubmitSerializer
 
 class SubmissionCompanyReadList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
@@ -170,7 +181,7 @@ class QuestionList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
     filter_backends = (InternshipFilterBackend,)
     '''
-    def create(self, request, *args, **kwargs):
+    de' create(self, request, *args, **kwargs):
         """
         #checks if post request data is an array initializes serializer with many=True
         else executes default CreateModelMixin.create function 
@@ -194,17 +205,3 @@ class AnswerList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('question',)
-    def create(self, request, *args, **kwargs):
-        """
-        #checks if post request data is an array initializes serializer with many=True
-        else executes default CreateModelMixin.create function 
-        """
-        is_many = isinstance(request.data, list)
-        if not is_many:
-            return super(AnswerSerializer, self).create(request, *args, **kwargs)
-        else:
-            serializer = self.get_serializer(data=request.data, many=True)
-            serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
-            headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
