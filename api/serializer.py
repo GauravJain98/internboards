@@ -306,10 +306,14 @@ class InternshipReadSubSerializer(serializers.ModelSerializer):
         return JsonResponse({"error":"Not allowed to create"})
 
     def to_representation(self, instance):
-        instance.id = str(instance.id) + instance.code
-        instance.code = None
-        ret = super().to_representation(instance)
-        return ret
+        try:
+            instance.id = str(instance.id) + instance.code
+            instance.code = None
+        except:
+            pass
+        finally:
+            ret = super().to_representation(instance)
+            return ret
 '''
 class InternshipAvaliableSerializer(serializers.ModelSerializer):
 
@@ -408,7 +412,7 @@ class AnswerSerializer(serializers.ModelSerializer):
         fields = ['id', 'submission','question','answer_text']
 
 class SubmitSerializer(serializers.Serializer):
-    submission = SubmissionSerializer(required = True)
+    submission = SubmissionInternReadSerializer(required = True)
     answers = AnswerSerializer(many=True)
 
     def validate(self, data):
