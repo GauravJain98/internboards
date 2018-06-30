@@ -36,6 +36,7 @@ router.register(r'internship', views.InternshipList)
 #router.register(r'internshipavaliable', views.InternshipAvaliableList)
 
 router.register(r'submission/intern', views.SubmissionInternReadList)
+router.register(r'submission/company', views.SubmissionCompanyReadList)
 router.register(r'submission', views.SubmissionList)
 router.register(r'question', views.QuestionList)
 router.register(r'answer', views.AnswerList)

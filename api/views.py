@@ -1,4 +1,3 @@
-from django.urls import path, include
 from django.contrib.auth.models import User, Group
 from django.contrib import admin
 from django_filters.rest_framework import DjangoFilterBackend
@@ -127,7 +126,7 @@ class InternshipReadList(viewsets.ModelViewSet):
     serializer_class = InternshipReadSerializer
     filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,DurationFilterBackend,CodeIdFilterBackend)
     filter_fields = ('category','location','company','approved','skills','PPO','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
-    search_fields = ('category', 'stipend','location','responsibilities','skills')
+    search_fields = ('category','stipend','location','responsibilities','skills__name')
     ordering_fields = ('start', 'duration')
 
 class InternshipList(viewsets.ModelViewSet):
@@ -148,7 +147,7 @@ class SubmissionList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('intern','status')
-    
+
 class SubmissionInternReadList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Submission.objects.all()
@@ -157,12 +156,36 @@ class SubmissionInternReadList(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,InternshipFilterBackend,)
     filter_fields = ('intern',)
 
+class SubmissionCompanyReadList(viewsets.ModelViewSet):
+    permissions_classes = (permissions.IsAuthenticated,)
+    queryset = Submission.objects.all()
+    serializer_class = SubmissionCompanyReadSerializer
+    pagination_class = BasicPagination
+    filter_backends = (DjangoFilterBackend,InternshipFilterBackend,)
+
 class QuestionList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
     pagination_class = BasicPagination
     filter_backends = (InternshipFilterBackend,)
+    '''
+    def create(self, request, *args, **kwargs):
+        """
+        #checks if post request data is an array initializes serializer with many=True
+        else executes default CreateModelMixin.create function 
+        """
+        is_many = isinstance(request.data, list)
+        if not is_many:
+            return super(QuestionSerializer, self).create(request, *args, **kwargs)
+        else:
+            serializer = self.get_serializer(data=request.data, many=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        '''
+
 
 class AnswerList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)

@@ -330,7 +330,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Submission
-        fields = ['id', 'intern','college','internship','status']
+        fields = ['id', 'intern','college','internship']
         
     def validate(self, data):
         if self.context['request'].method != 'PATCH':
@@ -347,6 +347,21 @@ class SubmissionInternReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submission
         fields = ['id', 'intern','college','internship','status','selected']
+        read_only_fields = ('status',)
+        
+    def create(self, validated_data):
+        return JsonResponse({"error":"Not allowed to create"})
+
+
+class SubmissionCompanyReadSerializer(serializers.ModelSerializer):
+
+    intern =InternSerializer(read_only=True)    
+    internship =InternshipReadSubSerializer(read_only=True)
+
+    class Meta:
+        model = Submission
+        fields = ['id', 'intern','college','internship','status','selected']
+        read_only_fields = ('status',)
         
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})
