@@ -416,7 +416,7 @@ class AnswerSerializer(serializers.ModelSerializer):
         fields = ['id', 'submission','question','answer_text']
 
 class SubmitSerializer(serializers.Serializer):
-    submission = SubmissionInternReadSerializer(required = True)
+    submission = SubmissionSerializer(required = True)
     answers = AnswerSerializer(many=True)
 
     def validate(self, data):
