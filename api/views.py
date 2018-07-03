@@ -197,7 +197,6 @@ class QuestionList(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         '''
 
-
 class AnswerList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
     queryset = Answer.objects.all()
@@ -205,3 +204,11 @@ class AnswerList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('question',)
+
+class AnswerReadList(viewsets.ModelViewSet):
+    permissions_classes = (permissions.IsAuthenticated,)
+    queryset = Answer.objects.all()
+    serializer_class = AnswerReadSerializer
+    pagination_class = BasicPagination
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('submission',)

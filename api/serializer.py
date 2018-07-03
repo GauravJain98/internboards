@@ -411,10 +411,20 @@ class AnswerSerializer(serializers.ModelSerializer):
             answer.save()
         return submission
 '''
+
 class AnswerSerializer(serializers.ModelSerializer):
 
     submission =serializers.PrimaryKeyRelatedField(many=False, queryset=Submission.objects.all(),required=False)    
     question =serializers.PrimaryKeyRelatedField(many=False, queryset=Question.objects.all())    
+    class Meta:
+        model = Answer
+        validators = []
+        fields = ['id', 'submission','question','answer_text']
+
+class AnswerReadSerializer(serializers.ModelSerializer):
+
+    submission =serializers.PrimaryKeyRelatedField(many=False, queryset=Submission.objects.all(),required=False)    
+    question =QuestionSerializer(many=False)
     class Meta:
         model = Answer
         validators = []
