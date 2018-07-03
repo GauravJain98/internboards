@@ -346,6 +346,11 @@ class SubmissionSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Already applied")
             return data
         return data
+        
+       
+    def create(self, validated_data):
+        submission = Submission.objects.create(**validated_data) 
+        return submission
 
 class SubmissionInternReadSerializer(serializers.ModelSerializer):
 
@@ -422,6 +427,8 @@ class SubmitSerializer(serializers.Serializer):
     def validate(self, data):
         if self.context['request'].method == 'POST':
             question = Question.objects.filter(internship= data["submission"]["internship"])
+            if len(data['answers']) != len(question):
+                raise serializers.ValidationError("Incomplete submission")
             for answer in data['answers']:
                 if answer['question'] not in question:
                     raise serializers.ValidationError("Invalid Question")

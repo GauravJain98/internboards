@@ -256,6 +256,7 @@ class Internship(models.Model):
         return str(self.id)
 
 STATUS_TYPE = (
+    ('-1','Position Filled'),
     ('0','Rejected'),
     ('1','Review Period'),
     ('2','Shortlisted'),
@@ -278,6 +279,9 @@ class Submission(models.Model):
     selected = models.BooleanField(default = 'False')
     def __str__(self):
         return str(self.id)
+    def save(self, *args, **kwargs):
+        self.internship.save()
+        super().save(*args, **kwargs)
 
     class Meta:
         unique_together = (("internship", "intern"),)

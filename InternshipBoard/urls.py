@@ -32,7 +32,7 @@ router.register(r'degree', views.DegreeList)
 router.register(r'job', views.JobList)
 router.register(r'project', views.ProjectList)
 #router.register(r'hiring', views.HiringList)
-router.register(r'internship/read', views.InternshipReadList)
+router.register(r'internship/read', views.InternshipReadList, base_name="Internship")
 router.register(r'internship', views.InternshipList)
 #router.register(r'internshipavaliable', views.InternshipAvaliableList)
 
