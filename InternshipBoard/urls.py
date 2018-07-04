@@ -16,10 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.conf.urls import url, include
-from rest_framework.routers import DefaultRouter
+from rest_framework.routers import SimpleRouter
 from api import views
 
-router = DefaultRouter()
+router = SimpleRouter()
 router.register(r'intern/add', views.InternAddList)
 router.register(r'companyuser/add', views.Company_UserAddList)
 router.register(r'intern', views.InternList)
@@ -30,6 +30,7 @@ router.register(r'company', views.CompanyList)
 router.register(r'siteadmin', views.SiteAdminList)
 router.register(r'skill', views.SkillList)
 router.register(r'submit', views.Submit)
+#router.register(r'resume', views.Resume , base_name='resume')
 router.register(r'degree', views.DegreeList)
 router.register(r'job', views.JobList)
 router.register(r'project', views.ProjectList)

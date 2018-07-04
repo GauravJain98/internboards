@@ -146,9 +146,13 @@ class InternshipReadList(viewsets.ModelViewSet):
 
     def get_queryset(self):
         intern = getIntern(self.request)
+        queryset = Internship.objects.all()
         if not intern or 'id' in self.request.GET:
-            return Internship.objects.all()
-        return list(Internship.objects.raw('SELECT * from api_internship where id not in (SELECT internship_id from api_submission where intern_id='+str(intern.id)+')'))
+            return queryset
+        submissions= Submission.objects.select_related('internship').filter(intern = intern)
+        for submission in submissions:
+            queryset = queryset.exclude(id = submission.internship.id)
+        return queryset
 
 class InternshipList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
@@ -180,6 +184,21 @@ class SubmissionInternReadList(viewsets.ModelViewSet):
 class Submit(viewsets.ModelViewSet):
     queryset = Submission.objects.all()
     serializer_class = SubmitSerializer
+
+class Resume(ObjectMultipleModelAPIView):
+
+    querylist = (
+        {
+            'queryset': Project.objects.all(), 
+            'serializer_class': ProjectSerializer,
+            'label':'project',
+        },
+        {
+            'queryset': Job.objects.all(), 
+            'serializer_class': JobSerializer,
+            'label':'job',
+        }
+    )
 
 class SubmissionCompanyReadList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
