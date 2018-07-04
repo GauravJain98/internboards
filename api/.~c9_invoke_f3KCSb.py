@@ -53,17 +53,8 @@ class UsernameFilterBackend(filterr.BaseFilterBackend):
             return queryset.filter(user__user__username=request.GET["username"])
         else:
             return queryset
-            
-class InternAddList(viewsets.ModelViewSet):
-    queryset = Intern.objects.all()
-    serializer_class = InternSerializer
-    http_method_names = ['post', 'options']
 
-class Company_UserAddList(viewsets.ModelViewSet):
-    queryset = Company_User.objects.all()
-    serializer_class = Company_UserSerializer
-    http_method_names = ['post', 'options']
-        
+            
 class InternList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
     queryset = Intern.objects.all()
@@ -139,7 +130,7 @@ class ProjectList(viewsets.ModelViewSet):
 class InternshipReadList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
     serializer_class = InternshipReadSerializer
-    filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,DurationFilterBackend,CodeIdFilterBackend)
+    filter_backends = (filterr.SearchFilter,filterr.OrderingFilter,DurationFilterBackend,CodeIdFilterBackend)
     filter_fields = ('category','location','company','approved','skills','PPO','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
     search_fields = ('category','stipend','location','responsibilities','skills__name')
     ordering_fields = ('start', 'duration')
@@ -148,7 +139,7 @@ class InternshipReadList(viewsets.ModelViewSet):
         intern = getIntern(self.request)
         if not intern or 'id' in self.request.GET:
             return Internship.objects.all()
-        return list(Internship.objects.raw('SELECT * from api_internship where id not in (SELECT internship_id from api_submission where intern_id='+str(intern.id)+')'))
+        return Internship.objects.raw('SELECT * from api_internship where id not in (SELECT internship_id from api_submission where intern_id='+str(intern.id)+')')
 
 class InternshipList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)

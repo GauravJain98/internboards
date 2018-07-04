@@ -4,6 +4,32 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from .permissions import *
 
+def getUser(request):
+    if 'HTTP_ACCESSTOKEN' in request.META:
+        token = request.META['HTTP_ACCESSTOKEN']
+        return AuthToken.objects.select_related('user').get(token = token).user
+    return False
+    
+def getIntern(request):
+    if 'HTTP_ACCESSTOKEN' in request.META:
+        token = request.META['HTTP_ACCESSTOKEN']
+        user = list(AuthToken.objects.select_related('user').filter(token = token))
+        if len(user) > 0:
+            user = user[0].user
+            intern = Intern.objects.filter(user__user = user)
+            return list(intern)[0]
+        else:
+            return False
+    return False
+    
+def getCompanyUser(request):
+    if 'HTTP_ACCESSTOKEN' in request.META:
+        token = request.META['HTTP_ACCESSTOKEN']
+        user = AuthToken.objects.select_related('user').get(token = token).user
+        company_user = Company_User.objects.filter(user__user = user)
+        return company_user
+    return False
+
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
@@ -280,10 +306,15 @@ class InternshipReadSerializer(serializers.ModelSerializer):
         slug_field='name',
         queryset=Skill.objects.all()
     )
+    applied = serializers.SerializerMethodField()
 
     class Meta:
         model =  Internship
-        fields = ['id','category','company','skills','company_user','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','start','duration','responsibilities','stipend','location','stipend_rate','code']
+        fields = ['id','category','company','skills','company_user','applied','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','start','duration','responsibilities','stipend','location','stipend_rate','code']
+    
+    def get_applied(self, obj):
+        intern = getIntern(self.context['request'])
+        return Submission.objects.filter(intern = intern,internship__id = int(obj.id[:-4])).exists()
    
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})

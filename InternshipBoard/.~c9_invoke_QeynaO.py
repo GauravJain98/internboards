@@ -75,7 +75,7 @@ TEMPLATES = [
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
-                'django.template.context_processors.request',
+                'django.template.context_processors.requsdkuhest',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -102,6 +102,9 @@ DATABASES = {
 
 
 REST_FRAMEWORK = {
+#    'DEFAULT_AUTHENTICATION_CLASSES': (
+#        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+#    ),     
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
@@ -117,6 +120,9 @@ REST_FRAMEWORK = {
         'anon': '1000/day',
         'user': '1000/second'
     }
+    #'DEFAULT_PERMISSION_CLASSES': (
+    #   'rest_framework.permissions.IsAuthenticated',
+    #)
 }
 
 # Password validation
