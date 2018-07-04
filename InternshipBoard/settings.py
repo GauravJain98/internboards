@@ -114,10 +114,13 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '1000/day',
         'user': '1000/second'
-    }
+    },
     #'DEFAULT_PERMISSION_CLASSES': (
     #   'rest_framework.permissions.IsAuthenticated',
     #)
+    'DEFAULT_PERMISSION_CLASSES': (
+       'oauth.permissions.IsAuthenticated2',
+    )
 }
 
 # Password validation
@@ -158,5 +161,4 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-
-APPEND_SLASH=False
+ 

@@ -1,12 +1,14 @@
 from rest_framework import permissions
-from datetime import datetime
+from datetime import datetime, timezone
+from .models import AuthToken
 
-class IsAuthenticated(permissions.BasePermission):
+class IsAuthenticated2(permissions.BasePermission):
     def has_permission(self, request, view):
-        if ('access_token'  request.data):
-            token = Auth.objects.filter(token = request.data['access_token'],revoked = False):
+        if 'HTTP_ACCESSTOKEN' in request.META:
+            token = AuthToken.objects.filter(token = request.META['HTTP_ACCESSTOKEN'],revoked = False)
             if token.exists():
-                if (datetime.now - token.added).total_seconds > token.expire :
+                token = list(token)[0]
+                if ( datetime.now(timezone.utc) - token.added).total_seconds() > token.expires :
                     token.revoked = True
                     token.save()
                     return False
