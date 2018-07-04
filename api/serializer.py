@@ -418,7 +418,6 @@ class AnswerSerializer(serializers.ModelSerializer):
     question =serializers.PrimaryKeyRelatedField(many=False, queryset=Question.objects.all())    
     class Meta:
         model = Answer
-        validators = []
         fields = ['id', 'submission','question','answer_text']
 
 class AnswerReadSerializer(serializers.ModelSerializer):
