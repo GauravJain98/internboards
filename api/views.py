@@ -10,11 +10,13 @@ from rest_framework import filters as rffilter
 from drf_multiple_model.views import ObjectMultipleModelAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from oauth.permissions import IsAuthenticated2
 from rest_framework import filters as filterr
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, TokenHasScope
 from .serializer import *
 from django.http import Http404
 from .pagination import *
+from .permissions import *
 
 class DurationFilterBackend(filterr.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
@@ -54,26 +56,26 @@ class UsernameFilterBackend(filterr.BaseFilterBackend):
 
             
 class InternList(viewsets.ModelViewSet):
-    permissions_classes = (permissions.IsAuthenticated,)
+    permission_classes  = (IsAuthenticated2,)
     queryset = Intern.objects.all()
     serializer_class = InternSerializer
     pagination_class = BasicPagination
     filter_backends = (UsernameFilterBackend,)
 
 class Company_UserList(viewsets.ModelViewSet):
-    permissions_classes = (permissions.IsAuthenticated,)
+    permission_classes  = (IsAuthenticated2,)
     queryset = Company_User.objects.all()
     serializer_class = Company_UserSerializer
     pagination_class = BasicPagination
 
 class CategoryList(viewsets.ModelViewSet):
-    permissions_classes = (permissions.IsAuthenticated,)
+    permission_classes  = (IsAuthenticated2,)
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = BasicPagination
 
 class GithubList(viewsets.ModelViewSet):
-    permissions_classes = (permissions.IsAuthenticated,)
+    permission_classes  = (IsAuthenticated2,)
     queryset = Github.objects.all()
     serializer_class = GithubSerializer
     pagination_class = BasicPagination
@@ -81,7 +83,7 @@ class GithubList(viewsets.ModelViewSet):
     filter_fields = ('intern',)
 
 class CompanyList(viewsets.ModelViewSet):
-    permissions_classes = (permissions.IsAuthenticated,)
+    permission_classes  = (IsAuthenticated2,)
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
     filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,)
@@ -90,19 +92,19 @@ class CompanyList(viewsets.ModelViewSet):
     ordering_fields = ('name', 'email')
 
 class SiteAdminList(viewsets.ModelViewSet):
-    permissions_classes = (permissions.IsAuthenticated,permissions.IsAdminUser)
+    permission_classes  = (IsAuthenticated2,permissions.IsAdminUser)
     queryset = SiteAdmin.objects.all()
     serializer_class = SiteAdminSerializer
     pagination_class = BasicPagination
 
 class SkillList(viewsets.ModelViewSet):
-    permissions_classes = (permissions.IsAuthenticated,)
+    permission_classes  = (IsAuthenticated2,InternPermission)
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
 
 
 class DegreeList(viewsets.ModelViewSet):
-    permissions_classes = (permissions.IsAuthenticated,)
+    permission_classes  = (IsAuthenticated2,)
     queryset = Degree.objects.all()
     serializer_class = DegreeSerializer
     pagination_class = BasicPagination
@@ -110,7 +112,7 @@ class DegreeList(viewsets.ModelViewSet):
     filter_fields = ('intern',)
 
 class JobList(viewsets.ModelViewSet):
-    permissions_classes = (permissions.IsAuthenticated,)
+    permission_classes  = (IsAuthenticated2,)
     queryset = Job.objects.all()
     pagination_class = BasicPagination
     serializer_class = JobSerializer
@@ -118,7 +120,7 @@ class JobList(viewsets.ModelViewSet):
     filter_fields = ('intern',)
 
 class ProjectList(viewsets.ModelViewSet):
-    permissions_classes = (permissions.IsAuthenticated,)
+    permission_classes  = (IsAuthenticated2,)
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
     pagination_class = BasicPagination
@@ -127,7 +129,6 @@ class ProjectList(viewsets.ModelViewSet):
 
 
 class InternshipReadList(viewsets.ModelViewSet):
-    permissions_classes = (permissions.IsAuthenticated,)
     queryset = Internship.objects.all()
     pagination_class = BasicPagination
     serializer_class = InternshipReadSerializer
@@ -137,7 +138,7 @@ class InternshipReadList(viewsets.ModelViewSet):
     ordering_fields = ('start', 'duration')
 
 class InternshipList(viewsets.ModelViewSet):
-    permissions_classes = (permissions.IsAuthenticated,)
+    permission_classes  = (IsAuthenticated2,)
     queryset = Internship.objects.all()
     serializer_class = InternshipSerializer
 
@@ -148,7 +149,7 @@ def update(request):
     return Http404
 
 class SubmissionList(viewsets.ModelViewSet):
-    permissions_classes = (permissions.IsAuthenticated,)
+    permission_classes  = (IsAuthenticated2,)
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
     pagination_class = BasicPagination
@@ -156,7 +157,7 @@ class SubmissionList(viewsets.ModelViewSet):
     filter_fields = ('intern','status','internship')
 
 class SubmissionInternReadList(viewsets.ModelViewSet):
-    permissions_classes = (permissions.IsAuthenticated,)
+    permission_classes  = (IsAuthenticated2,)
     queryset = Submission.objects.all()
     serializer_class = SubmissionInternReadSerializer
     pagination_class = BasicPagination
@@ -168,14 +169,14 @@ class Submit(viewsets.ModelViewSet):
     serializer_class = SubmitSerializer
 
 class SubmissionCompanyReadList(viewsets.ModelViewSet):
-    permissions_classes = (permissions.IsAuthenticated,)
+    permission_classes  = (IsAuthenticated2,)
     queryset = Submission.objects.all()
     serializer_class = SubmissionCompanyReadSerializer
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,InternshipFilterBackend,)
         
 class QuestionList(viewsets.ModelViewSet):
-    permissions_classes = (permissions.IsAuthenticated,)
+    permission_classes  = (IsAuthenticated2,)
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
     pagination_class = BasicPagination
@@ -198,7 +199,7 @@ class QuestionList(viewsets.ModelViewSet):
         '''
 
 class AnswerList(viewsets.ModelViewSet):
-    permissions_classes = (permissions.IsAuthenticated,)
+    permission_classes  = (IsAuthenticated2,)
     queryset = Answer.objects.all()
     serializer_class = AnswerSerializer
     pagination_class = BasicPagination

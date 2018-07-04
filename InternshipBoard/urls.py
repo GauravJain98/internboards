@@ -45,7 +45,7 @@ router.register(r'answer', views.AnswerList)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    path('o/', include('oauth.urls')),
     path('login/', include('clientSide.urls')),
     path('update/', views.update),
 #    path('submit/', views.submit),

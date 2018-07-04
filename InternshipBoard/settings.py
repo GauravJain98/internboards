@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -28,11 +29,16 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 
-
+CORS_ALLOW_HEADERS = (
+    'accesstoken',
+    'Content-Type',
+)
+    
 # Application definition
 
 INSTALLED_APPS = [
     'api',
+    'oauth',
     'clientSide',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,7 +47,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
-    'oauth2_provider',
     'rest_framework',
     'drf_multiple_model',
     'django_filters',
@@ -95,11 +100,6 @@ DATABASES = {
     }
 }
 
-OAUTH2_PROVIDER = {
-    # this is the list of available scopes
-    'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'groups': 'Access to your groups'},
-    'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore'
-}
 
 REST_FRAMEWORK = {
 #    'DEFAULT_AUTHENTICATION_CLASSES': (
