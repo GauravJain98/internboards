@@ -32,7 +32,7 @@ router.register(r'degree', views.DegreeList)
 router.register(r'job', views.JobList)
 router.register(r'project', views.ProjectList)
 #router.register(r'hiring', views.HiringList)
-router.register(r'internship/read', views.InternshipReadList)
+router.register(r'internship/read', views.InternshipReadList, base_name="Internship")
 router.register(r'internship', views.InternshipList)
 #router.register(r'internshipavaliable', views.InternshipAvaliableList)
 
@@ -40,6 +40,7 @@ router.register(r'submission/intern', views.SubmissionInternReadList)
 router.register(r'submission/company', views.SubmissionCompanyReadList)
 router.register(r'submission', views.SubmissionList)
 router.register(r'question', views.QuestionList)
+router.register(r'answer/read', views.AnswerReadList)
 router.register(r'answer', views.AnswerList)
 
 urlpatterns = [

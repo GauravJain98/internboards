@@ -155,7 +155,7 @@ class SubmissionList(viewsets.ModelViewSet):
     serializer_class = SubmissionSerializer
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('intern','status')
+    filter_fields = ('intern','status','internship')
 
 class SubmissionInternReadList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
@@ -175,7 +175,7 @@ class SubmissionCompanyReadList(viewsets.ModelViewSet):
     serializer_class = SubmissionCompanyReadSerializer
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,InternshipFilterBackend,)
-
+        
 class QuestionList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
     queryset = Question.objects.all()
@@ -199,7 +199,6 @@ class QuestionList(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         '''
 
-
 class AnswerList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
     queryset = Answer.objects.all()
@@ -207,3 +206,11 @@ class AnswerList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('question',)
+
+class AnswerReadList(viewsets.ModelViewSet):
+    permissions_classes = (permissions.IsAuthenticated,)
+    queryset = Answer.objects.all()
+    serializer_class = AnswerReadSerializer
+    pagination_class = BasicPagination
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('submission',)
