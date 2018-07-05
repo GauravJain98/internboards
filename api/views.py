@@ -82,6 +82,7 @@ class Company_UserList(viewsets.ModelViewSet):
     queryset = Company_User.objects.all()
     serializer_class = Company_UserSerializer
     pagination_class = BasicPagination
+    filter_backends = (UsernameFilterBackend,)
 
 class CategoryList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)

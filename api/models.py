@@ -11,6 +11,8 @@ def random_n(n):
     return randint(range_start, range_end)
 
 class Address(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     apartment = models.CharField(max_length=10,blank=True,null=True)
     street = models.CharField(max_length=30,blank=True,null=True)
     city = models.CharField(max_length=10,blank=True,null=True)
@@ -18,6 +20,8 @@ class Address(models.Model):
     country = models.CharField(max_length=50,blank=True,null=True)
 
 class College(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=200,blank=False)
     sub = models.CharField(max_length=200,blank=False)
     address = models.ForeignKey(
@@ -27,6 +31,8 @@ class College(models.Model):
     )
 ##
 class Skill(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(
         max_length = 30,
         unique = True,
@@ -36,6 +42,8 @@ class Skill(models.Model):
         return self.name
 ##
 class Custom_User(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     user = models.OneToOneField(
         User,
         on_delete = models.CASCADE
@@ -49,6 +57,8 @@ class Custom_User(models.Model):
 #Intern
 ##
 class Intern(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     user = models.OneToOneField (
         Custom_User,
         on_delete=models.CASCADE,
@@ -60,6 +70,8 @@ class Intern(models.Model):
         return "{} {}".format(self.user.user.first_name,self.user.user.last_name)
 ##
 class Github(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     intern = models.OneToOneField (
         Intern,
         on_delete=models.CASCADE,
@@ -73,6 +85,8 @@ class Github(models.Model):
         return str(self.intern)
 ##
 class Degree(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     college_name = models.CharField(max_length=60,blank=False)
     start = models.DateField( default=datetime.date.today)
     end= models.DateField( default=datetime.date.today)
@@ -94,6 +108,8 @@ class Degree(models.Model):
 
 ##
 class Job(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     position = models.CharField(max_length =60,blank=False)
     organization = models.CharField(max_length =90,blank=False)
     location = models.CharField(max_length =90,blank=False)
@@ -113,6 +129,8 @@ class Job(models.Model):
 
 ##
 class Project(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length =60,blank=False)
     start = models.DateField( default=datetime.date.today)
     end= models.DateField( default=datetime.date.today)
@@ -137,6 +155,8 @@ def random_string():
     return rnd
 ##       
 class Company(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=30,blank=False)
     website = models.CharField(max_length=60,blank=False, default="")
     email = models.CharField(max_length=200,blank=False, default="")
@@ -156,6 +176,8 @@ class Company(models.Model):
         return self.name
 ##    
 class Company_User(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(
         Custom_User,
         on_delete=models.CASCADE,
@@ -202,6 +224,8 @@ STRIPEND_RATE = (
 )
 ##
 class Category(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length = 20,blank=False,unique = True)
     def __str__(self):
         return str(self.name)
@@ -216,13 +240,15 @@ STATUS_INTERN_TYPE = (
 
 
 class Internship(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     applications = models.IntegerField(default=0)
     selected = models.IntegerField(default=0)   
     approved = models.BooleanField(default = 'False')
     denied = models.BooleanField(default = 'False')
     allowed = models.BooleanField(default = 'False')
     #perks
-    status = models.CharField(max_length= 20,default = '1')
+    status = models.IntegerField(default = 1)
     certificate = models.BooleanField(default = 'False')
     flexible_work_hours = models.BooleanField(default = 'False')
     letter_of_recommendation = models.BooleanField(default = 'False')
@@ -242,10 +268,11 @@ class Internship(models.Model):
     code = models.CharField(max_length = 4,null=False,blank=True,default = "")
     id_code = models.CharField(max_length=20,null=False,blank=True)
     available = models.ManyToManyField(College , related_name='internships')
-    skills = models.ManyToManyField(Skill,
-    null=True,
-    blank=True)
-    
+    skills = models.ManyToManyField(
+        Skill,
+        null=True,
+        blank=True
+    )
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
@@ -276,6 +303,8 @@ STATUS_TYPE = (
 
 ##
 class Submission(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     intern = models.ForeignKey (
         Intern,
         on_delete=models.CASCADE,
@@ -286,7 +315,7 @@ class Submission(models.Model):
         on_delete=models.CASCADE,
         verbose_name = 'Internship',
     )
-    status = models.CharField(max_length= 20,default = '1')
+    status = models.IntegerField(default = 1)
     selected = models.BooleanField(default = 'False')
     def __str__(self):
         return str(self.id)
@@ -298,6 +327,8 @@ class Submission(models.Model):
         unique_together = (("internship", "intern"),)
 ##
 class Question(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     question = models.CharField(max_length=50,default='',blank=False)
     internship =  models.ForeignKey(
         Internship,
@@ -308,6 +339,8 @@ class Question(models.Model):
         return str(self.question)
 ##
 class Answer(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     submission = models.ForeignKey(
         Submission,
         on_delete=models.CASCADE,
@@ -325,6 +358,8 @@ class Answer(models.Model):
 #CustomAdmin
 ##
 class SiteAdmin(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     user = models.OneToOneField(
         Custom_User,
         on_delete=models.CASCADE,
