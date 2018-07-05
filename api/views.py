@@ -29,6 +29,13 @@ class DurationFilterBackend(filterr.BaseFilterBackend):
 
 class InternshipFilterBackend(filterr.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
+        '''
+        subs = Submission.objects.filter(status=1)
+        for query in queryset:
+            sub = subs.filter(internship = query)
+            if len(sub) > 100:
+                queryset.exclude(id = query.id)
+        '''
         if "internship" in request.GET and request.GET['internship'] != '':
             return queryset.filter(internship__id_code=request.GET["internship"])
         else:
@@ -53,10 +60,10 @@ class UsernameFilterBackend(filterr.BaseFilterBackend):
             return queryset.filter(user__user__username=request.GET["username"])
         else:
             return queryset
-            
+
 class InternAddList(viewsets.ModelViewSet):
     queryset = Intern.objects.all()
-    serializer_class = InternSerializer
+    serializer_class = InternAddSerializer
     http_method_names = ['post', 'options']
 
 class Company_UserAddList(viewsets.ModelViewSet):
@@ -72,7 +79,6 @@ class InternList(viewsets.ModelViewSet):
     filter_backends = (UsernameFilterBackend,)
 
 class Company_UserList(viewsets.ModelViewSet):
-    permission_classes  = (IsAuthenticated2,)
     queryset = Company_User.objects.all()
     serializer_class = Company_UserSerializer
     pagination_class = BasicPagination
@@ -82,6 +88,7 @@ class CategoryList(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = BasicPagination
+
 
 class GithubList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
@@ -147,6 +154,7 @@ class InternshipReadList(viewsets.ModelViewSet):
     def get_queryset(self):
         intern = getIntern(self.request)
         queryset = Internship.objects.all()
+        
         if not intern or 'id' in self.request.GET:
             return queryset
         submissions= Submission.objects.select_related('internship').filter(intern = intern)
@@ -205,8 +213,9 @@ class SubmissionCompanyReadList(viewsets.ModelViewSet):
     queryset = Submission.objects.all()
     serializer_class = SubmissionCompanyReadSerializer
     pagination_class = BasicPagination
-    filter_backends = (DjangoFilterBackend,InternshipFilterBackend,)
-        
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('intern',)
+
 class QuestionList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
     queryset = Question.objects.all()

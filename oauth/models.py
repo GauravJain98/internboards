@@ -28,6 +28,7 @@ class AuthToken(models.Model):
         verbose_name = 'User',
         null = False,
         blank = False,
+        default=1,
     )
     revoked = models.BooleanField(default = False)
     

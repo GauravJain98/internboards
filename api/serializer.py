@@ -3,6 +3,7 @@ from rest_framework import permissions, serializers
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from .permissions import *
+from oauth.models import AuthToken
 
 def getUser(request):
     if 'HTTP_ACCESSTOKEN' in request.META:
@@ -38,11 +39,12 @@ class AddressSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name','password')
+        fields = ('email', 'first_name', 'last_name','password')
         extra_kwargs = {'password': {'write_only': True}}
     def create(self, validated_data):
         password = validated_data.pop('password')
-        user, created = User.objects.get_or_create(**validated_data)
+        email = validated_data.pop('email')
+        user, created = User.objects.get_or_create(username = email,email = email,**validated_data)
         user.set_password(password)
         user.save()
         return user
@@ -150,7 +152,47 @@ class InternSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Intern
-        fields = ['id', 'user', 'skills','college','hired']
+        fields = ['id', 'user', 'skills','college']
+        read_only_fields = ('hired',)
+
+    def create(self, validated_data):
+        user_data = validated_data.pop('user')
+        skills_data = validated_data.pop('skills')
+
+        user = Custom_UserSerializer.create(Custom_UserSerializer(), validated_data=user_data)
+        intern ,created = Intern.objects.update_or_create(user = user , **validated_data) 
+
+        for skill in skills_data:
+            intern.skills.add(skill)
+
+        return intern
+
+class InternAddSerializer(serializers.ModelSerializer):
+
+    user = Custom_UserSerializer(required=True)
+    skills = serializers.SlugRelatedField(
+        many=True,
+        slug_field='name',
+        queryset=Skill.objects.all()
+    )
+    token = serializers.SerializerMethodField()
+
+    def to_representation(self, instance):
+        return {}
+    class Meta:
+        model = Intern
+        fields = ['id', 'user', 'skills','college','token']
+        read_only_fields = ('hired',)
+
+    def get_token(self,obj):
+        if self.context['request'].method == 'POST':
+            token = AuthToken.objects.filter(user=obj.user.user,revoked=False)
+            if len(token) >0:
+                token = list(token)[0]
+                return token.token
+            token = AuthToken.objects.create(user=obj.user.user,revoked=False)
+            return token.token
+        return ""
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
@@ -307,7 +349,6 @@ class InternshipReadSerializer(serializers.ModelSerializer):
         queryset=Skill.objects.all()
     )
     applied = serializers.SerializerMethodField()
-
     class Meta:
         model =  Internship
         fields = ['id','category','company','skills','company_user','applied','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','start','duration','responsibilities','stipend','location','stipend_rate','code']

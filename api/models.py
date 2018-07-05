@@ -11,11 +11,11 @@ def random_n(n):
     return randint(range_start, range_end)
 
 class Address(models.Model):
-    apartment = models.CharField(max_length=10,blank=False)
-    street = models.CharField(max_length=30,blank=False)
-    city = models.CharField(max_length=10,blank=False)
-    zip_code = models.CharField(max_length=8,blank=False)
-    country = models.CharField(max_length=50,blank=False)
+    apartment = models.CharField(max_length=10,blank=True,null=True)
+    street = models.CharField(max_length=30,blank=True,null=True)
+    city = models.CharField(max_length=10,blank=True,null=True)
+    zip_code = models.CharField(max_length=8,blank=True,null=True)
+    country = models.CharField(max_length=50,blank=True,null=True)
 
 class College(models.Model):
     name = models.CharField(max_length=200,blank=False)

@@ -49,7 +49,7 @@ router.register(r'answer', views.AnswerList)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('o/', include('oauth.urls')),
-    path('login/', include('clientSide.urls')),
+    path('callback/', include('clientSide.urls')),
     path('update/', views.update),
 #    path('submit/', views.submit),
     url(r'^', include(router.urls))

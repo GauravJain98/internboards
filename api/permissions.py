@@ -29,6 +29,7 @@ class InternPermission(permissions.BasePermission):
             intern = Intern.objects.filter(user__user = user).exists()
             return intern
         return False
+
 class Company_UserPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
