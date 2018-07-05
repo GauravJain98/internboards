@@ -206,6 +206,15 @@ class Category(models.Model):
     def __str__(self):
         return str(self.name)
 ##      
+STATUS_INTERN_TYPE = (
+    ('-2',''),
+    ('-1','Position Filled'),
+    ('0','Rejected'),
+    ('1','Review Period'),
+    ('2','Shortlisted'),
+)
+
+
 class Internship(models.Model):
     applications = models.IntegerField(default=0)
     selected = models.IntegerField(default=0)   
@@ -213,6 +222,7 @@ class Internship(models.Model):
     denied = models.BooleanField(default = 'False')
     allowed = models.BooleanField(default = 'False')
     #perks
+    status = models.CharField(max_length= 20,default = '1')
     certificate = models.BooleanField(default = 'False')
     flexible_work_hours = models.BooleanField(default = 'False')
     letter_of_recommendation = models.BooleanField(default = 'False')
@@ -263,6 +273,7 @@ STATUS_TYPE = (
     ('3','Interviewee'),
     ('4','Hired'),
 )
+
 ##
 class Submission(models.Model):
     intern = models.ForeignKey (
