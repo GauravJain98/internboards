@@ -7,5 +7,5 @@ from django.contrib.auth.views import login,logout
 
 
 urlpatterns = [
-    path('studentgiri', views.studentGiriRedirect,name='studentGiriRedirect'),
+    path('', views.studentGiriRedirect,name='studentGiriRedirect'),
 ]

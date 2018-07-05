@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.forms import ModelForm
 from uuid import uuid4
 import datetime
+from dateutil.relativedelta import relativedelta
 from random import randint
 
 def random_n(n):
@@ -147,7 +148,6 @@ class Project(models.Model):
             super().save(*args, **kwargs)
 
 #MainApp
-
 def random_string():
     rnd = str(uuid4().hex)
     while Company.objects.filter(key = rnd ):
@@ -261,6 +261,8 @@ class Internship(models.Model):
     performance_based=models.BooleanField(default = 'False')
     category = models.CharField(max_length= 20,default = 'None')
     start = models.DateField(auto_now=False, auto_now_add=False)
+    applications_end = models.DateField(auto_now=False, auto_now_add=False)
+    visibility = models.DateField(auto_now=False, auto_now_add=False)
     duration= models.IntegerField(default=0,null=True,blank=True)
     responsibilities = models.TextField(blank=False , default="")
     stipend = models.CharField(max_length=6,default = "0")
@@ -286,6 +288,7 @@ class Internship(models.Model):
     )
     def save(self, *args, **kwargs):
         if self.code == "":
+            self.visibility = self.applications_end + relativedelta(days=15)
             self.code = random_n(4)
         super().save(*args, **kwargs)
 

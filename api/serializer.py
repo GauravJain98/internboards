@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from .permissions import *
 from oauth.models import AuthToken
+from django.utils.timezone import now
 
 def getUser(request):
     if 'HTTP_ACCESSTOKEN' in request.META:
@@ -372,11 +373,24 @@ class InternshipReadSerializer(serializers.ModelSerializer):
 
 class InternshipReadSubSerializer(serializers.ModelSerializer):
 
-    company = CompanyReadSerializer(read_only=True)
-
+    company = serializers.PrimaryKeyRelatedField(many=False, queryset=Company.objects.all())
+    company_user =  serializers.PrimaryKeyRelatedField(many=False, queryset=Company_User.objects.all()) 
+    skills = serializers.SlugRelatedField(
+        many=True,
+        slug_field='name',
+        queryset=Skill.objects.all()
+    )
+    visibility = serializers.SerializerMethodField()
     class Meta:
         model =  Internship
-        fields = ['id','category','company','applications','code']
+        '''
+        1,2,5,6,7
+        'certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend',
+        '''
+        fields = ['id','category','company','skills','company_user','visibility','applications','selected','approved','denied','allowed','start','duration','responsibilities','stipend','location','stipend_rate','code']
+    
+    def get_visibility(self, obj):
+        return obj.visibility < now().date()
    
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})

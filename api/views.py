@@ -11,6 +11,7 @@ from drf_multiple_model.views import ObjectMultipleModelAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from oauth.permissions import IsAuthenticated2
+from django.utils.timezone import now
 from rest_framework import filters as filterr
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, TokenHasScope
 from .serializer import *
@@ -29,18 +30,30 @@ class DurationFilterBackend(filterr.BaseFilterBackend):
 
 class InternshipFilterBackend(filterr.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
-        '''
         subs = Submission.objects.filter(status=1)
         for query in queryset:
             sub = subs.filter(internship = query)
             if len(sub) > 100:
                 queryset.exclude(id = query.id)
-        '''
         if "internship" in request.GET and request.GET['internship'] != '':
             return queryset.filter(internship__id_code=request.GET["internship"])
         else:
             return queryset
 
+class FullInternshipFilterBackend(filterr.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        subs = Submission.objects.filter(status=1)
+        queryset.filter(visibility__gt = now())
+        for query in queryset:
+            sub = subs.filter(internship = query)
+            if len(sub) > 100:
+                queryset.exclude(id = query.id)
+            '''
+            if datetime.now() > query.visibility:
+                queryset.exclude(id = query.id)
+            '''
+        return queryset
+    
 class CodeIdFilterBackend(filterr.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         if 'id' in request.GET:
@@ -143,11 +156,10 @@ class ProjectList(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('intern',)
 
-
 class InternshipReadList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
     serializer_class = InternshipReadSerializer
-    filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,DurationFilterBackend,CodeIdFilterBackend)
+    filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,DurationFilterBackend,CodeIdFilterBackend,FullInternshipFilterBackend)
     filter_fields = ('category','location','company','approved','skills','PPO','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
     search_fields = ('category','stipend','location','responsibilities','skills__name')
     ordering_fields = ('start', 'duration')
@@ -161,6 +173,19 @@ class InternshipReadList(viewsets.ModelViewSet):
         submissions= Submission.objects.select_related('internship').filter(intern = intern)
         for submission in submissions:
             queryset = queryset.exclude(id = submission.internship.id)
+        return queryset
+
+class InternshipSubReadList(viewsets.ModelViewSet):
+    pagination_class = BasicPagination
+    serializer_class = InternshipReadSubSerializer
+    filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,DurationFilterBackend,CodeIdFilterBackend)
+    filter_fields = ('category','location','company','approved','skills','PPO','status','visibility','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
+    search_fields = ('category','stipend','location','responsibilities','skills__name')
+    ordering_fields = ('start', 'duration')
+
+    def get_queryset(self):
+        queryset = Internship.objects.all()
+        
         return queryset
 
 class InternshipList(viewsets.ModelViewSet):
