@@ -30,11 +30,6 @@ class DurationFilterBackend(filterr.BaseFilterBackend):
 
 class InternshipFilterBackend(filterr.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
-        subs = Submission.objects.filter(status=1)
-        for query in queryset:
-            sub = subs.filter(internship = query)
-            if len(sub) > 100:
-                queryset.exclude(id = query.id)
         if "internship" in request.GET and request.GET['internship'] != '':
             return queryset.filter(internship__id_code=request.GET["internship"])
         else:

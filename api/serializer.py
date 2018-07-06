@@ -441,12 +441,12 @@ class SubmissionSerializer(serializers.ModelSerializer):
 class SubmissionInternReadSerializer(serializers.ModelSerializer):
 
     intern =serializers.PrimaryKeyRelatedField(many=False, queryset=Intern.objects.all())    
-    internship =InternshipReadSubSerializer(read_only=True)
+    internship =InternshipReadSerializer(read_only=True)
 
     class Meta:
         model = Submission
-        fields = ['id', 'intern','college','internship','status','selected']
-        read_only_fields = ('status',)
+        fields = ['id', 'intern','college','internship','status','selected','created_at']
+        read_only_fields = ('status','created_at')
         
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})
@@ -459,8 +459,8 @@ class SubmissionCompanyReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Submission
-        fields = ['id', 'intern','college','internship','status','selected']
-        read_only_fields = ('status',)
+        fields = ['id', 'intern','college','internship','status','selected','created_at']
+        read_only_fields = ('status','created_at')
         
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})
