@@ -19,6 +19,22 @@ from django.http import Http404
 from .pagination import *
 from .permissions import *
 
+def send(html, email):
+    sg =sendgrid.SendGridAPIClient(apikey='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')
+    from_email = Email("contact@internboards.com")
+    to_email = Email(email)
+    subject = "Sending with SendGrid is Fun"
+    if html == 1:
+        content = Content("text/html", "<html><p>Hello, world!</p><h1>h1</h1><h2>h2</h2></html>")
+    if html == 2:
+        content = Content("text/html", "<html><p>Hello, world!</p><h1>h1</h1><h2>h2</h2></html>")
+    if html == 3:
+        content = Content("text/html", "<html><p>Hello, world!</p><h1>h1</h1><h2>h2</h2></html>")
+    if html == 4:
+        content = Content("text/html", "<html><p>Hello, world!</p><h1>h1</h1><h2>h2</h2></html>")
+    mail = Mail(from_email, subject, to_email, content)
+    response = sg.client.mail.send.post(request_body=mail.get())
+
 class DurationFilterBackend(filterr.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         if "duration" in request.GET and request.GET['duration'] != '':
@@ -59,7 +75,7 @@ class CodeIdFilterBackend(filterr.BaseFilterBackend):
             if len(list(queryset)) >0:
                 return queryset
             else:
-                return NotFound()
+                raise Http404
         return queryset
 
 class UsernameFilterBackend(filterr.BaseFilterBackend):
@@ -108,7 +124,7 @@ class GithubList(viewsets.ModelViewSet):
     filter_fields = ('intern',)
 
 class CompanyList(viewsets.ModelViewSet):
-    permission_classes  = (IsAuthenticated2,)
+#   added permission to add
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
     filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,)

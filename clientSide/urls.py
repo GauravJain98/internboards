@@ -7,5 +7,6 @@ from django.contrib.auth.views import login,logout
 
 
 urlpatterns = [
+    path('github', views.githubRedirect,name='studentGiriRedirect'),
     path('', views.studentGiriRedirect,name='studentGiriRedirect'),
 ]

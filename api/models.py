@@ -77,11 +77,19 @@ class Github(models.Model):
         Intern,
         on_delete=models.CASCADE,
     )
-    commits = models.IntegerField(null = False,blank=False)
+    following = models.IntegerField(null = False,blank=False)
     stars = models.IntegerField(null = False,blank=False)
     followers = models.IntegerField(null = False,blank=False)
     repositories = models.IntegerField(null = False,blank=False)
-    following = models.IntegerField(null = False,blank=False)
+    handle = models.CharField(max_length=200,null = False,blank=False)
+    origanization = models.CharField(max_length=200,null = False,blank=False)
+    owned_private_repo = models.CharField(max_length=200,null = False,blank=False)
+    origanization_url = models.CharField(max_length=200,null = False,blank=False)
+    owned_public_repos = models.IntegerField(default=0,null = False,blank=False)
+    collaborators = models.IntegerField(default=0,null = False,blank=False)
+    url = models.CharField(max_length=200,null = False,blank=False)
+    
+
     def __str__(self):
         return str(self.intern)
 ##
