@@ -3,6 +3,8 @@ from rest_framework import permissions, serializers
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from .permissions import *
+from oauth.models import AuthToken
+from django.utils.timezone import now
 
 def getUser(request):
     if 'HTTP_ACCESSTOKEN' in request.META:
@@ -38,14 +40,16 @@ class AddressSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name','password')
+        fields = ('email', 'first_name', 'last_name','password')
         extra_kwargs = {'password': {'write_only': True}}
     def create(self, validated_data):
         password = validated_data.pop('password')
-        user, created = User.objects.get_or_create(**validated_data)
-        user.set_password(password)
-        user.save()
-        return user
+        email = validated_data.pop('email')
+        if not User.objects.filter(username =email).exists():
+            user, created = User.objects.get_or_create(username = email,email = email,**validated_data)
+            user.set_password(password)
+            user.save()
+            return user
 
 class Custom_UserSerializer(serializers.ModelSerializer):
     """ 
@@ -139,6 +143,37 @@ class Company_UserSerializer(serializers.ModelSerializer):
         company_user ,created = Company_User.objects.update_or_create(user = user ,company=company_data ,added_user = added_user_data, **validated_data) 
         return company_user
 
+class Company_UserAddSerializer(serializers.ModelSerializer):
+
+    user = Custom_UserSerializer(required=True)
+    added_user = serializers.PrimaryKeyRelatedField(many=False, queryset=User.objects.all())    
+    company = serializers.PrimaryKeyRelatedField(many=False, queryset=Company.objects.all())    
+    token = serializers.SerializerMethodField()
+
+    def get_token(self,obj):
+        if self.context['request'].method == 'POST':
+            token = AuthToken.objects.filter(user=obj.user.user,revoked=False)
+            if len(token) >0:
+                token = list(token)[0]
+                return token.token
+            token = AuthToken.objects.create(user=obj.user.user,revoked=False)
+            return token.token
+        return ""
+
+    class Meta:
+        model = Company_User
+        fields = ['id', 'user', 'company','is_active','token','is_HR','added_user','share']
+
+    def create(self, validated_data):
+        user_data = validated_data.pop('user')
+        added_user_data = validated_data.pop('added_user')
+        company_data = validated_data.pop('company')
+
+        user = Custom_UserSerializer.create(Custom_UserSerializer(), validated_data=user_data)
+
+        company_user ,created = Company_User.objects.update_or_create(user = user ,company=company_data ,added_user = added_user_data, **validated_data) 
+        return company_user
+
 class InternSerializer(serializers.ModelSerializer):
 
     user = Custom_UserSerializer(required=True)
@@ -150,7 +185,45 @@ class InternSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Intern
-        fields = ['id', 'user', 'skills','college','hired']
+        fields = ['id', 'user', 'skills','college']
+        read_only_fields = ('hired',)
+
+    def create(self, validated_data):
+        user_data = validated_data.pop('user')
+        skills_data = validated_data.pop('skills')
+
+        user = Custom_UserSerializer.create(Custom_UserSerializer(), validated_data=user_data)
+        intern ,created = Intern.objects.update_or_create(user = user , **validated_data) 
+
+        for skill in skills_data:
+            intern.skills.add(skill)
+
+        return intern
+
+class InternAddSerializer(serializers.ModelSerializer):
+
+    user = Custom_UserSerializer(required=True)
+    skills = serializers.SlugRelatedField(
+        many=True,
+        slug_field='name',
+        queryset=Skill.objects.all()
+    )
+    token = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Intern
+        fields = ['id', 'user', 'skills','college','token']
+        read_only_fields = ('hired',)
+
+    def get_token(self,obj):
+        if self.context['request'].method == 'POST':
+            token = AuthToken.objects.filter(user=obj.user.user,revoked=False)
+            if len(token) >0:
+                token = list(token)[0]
+                return token.token
+            token = AuthToken.objects.create(user=obj.user.user,revoked=False)
+            return token.token
+        return ""
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
@@ -307,7 +380,6 @@ class InternshipReadSerializer(serializers.ModelSerializer):
         queryset=Skill.objects.all()
     )
     applied = serializers.SerializerMethodField()
-
     class Meta:
         model =  Internship
         fields = ['id','category','company','skills','company_user','applied','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','start','duration','responsibilities','stipend','location','stipend_rate','code']
@@ -331,11 +403,24 @@ class InternshipReadSerializer(serializers.ModelSerializer):
 
 class InternshipReadSubSerializer(serializers.ModelSerializer):
 
-    company = CompanyReadSerializer(read_only=True)
-
+    company = serializers.PrimaryKeyRelatedField(many=False, queryset=Company.objects.all())
+    company_user =  serializers.PrimaryKeyRelatedField(many=False, queryset=Company_User.objects.all()) 
+    skills = serializers.SlugRelatedField(
+        many=True,
+        slug_field='name',
+        queryset=Skill.objects.all()
+    )
+    visibility = serializers.SerializerMethodField()
     class Meta:
         model =  Internship
-        fields = ['id','category','company','applications','code']
+        '''
+        1,2,5,6,7
+        'certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend',
+        '''
+        fields = ['id','category','company','skills','company_user','visibility','applications','selected','approved','denied','allowed','start','duration','responsibilities','stipend','location','stipend_rate','code']
+    
+    def get_visibility(self, obj):
+        return obj.visibility < now().date()
    
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})
@@ -386,12 +471,12 @@ class SubmissionSerializer(serializers.ModelSerializer):
 class SubmissionInternReadSerializer(serializers.ModelSerializer):
 
     intern =serializers.PrimaryKeyRelatedField(many=False, queryset=Intern.objects.all())    
-    internship =InternshipReadSubSerializer(read_only=True)
+    internship =InternshipReadSerializer(read_only=True)
 
     class Meta:
         model = Submission
-        fields = ['id', 'intern','college','internship','status','selected']
-        read_only_fields = ('status',)
+        fields = ['id', 'intern','college','internship','status','selected','created_at']
+        read_only_fields = ('status','created_at')
         
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})
@@ -404,8 +489,8 @@ class SubmissionCompanyReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Submission
-        fields = ['id', 'intern','college','internship','status','selected']
-        read_only_fields = ('status',)
+        fields = ['id', 'intern','college','internship','status','selected','created_at']
+        read_only_fields = ('status','created_at')
         
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})

@@ -35,6 +35,7 @@ router.register(r'degree', views.DegreeList)
 router.register(r'job', views.JobList)
 router.register(r'project', views.ProjectList)
 #router.register(r'hiring', views.HiringList)
+router.register(r'internship/read/company', views.InternshipSubReadList, base_name="Internship")
 router.register(r'internship/read', views.InternshipReadList, base_name="Internship")
 router.register(r'internship', views.InternshipList)
 #router.register(r'internshipavaliable', views.InternshipAvaliableList)
@@ -49,7 +50,7 @@ router.register(r'answer', views.AnswerList)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('o/', include('oauth.urls')),
-    path('login/', include('clientSide.urls')),
+    path('callback/', include('clientSide.urls')),
     path('update/', views.update),
     path('resume/', views.resume),
     url(r'^', include(router.urls))

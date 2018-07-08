@@ -13,7 +13,7 @@ class Client(models.Model):
 class AuthToken(models.Model):
     token = models.CharField(max_length = 32,null=False, unique = True)
     refresh_token = models.CharField(max_length = 32,null=False, unique = True)
-    expires = models.IntegerField(default = 1800)
+    expires = models.IntegerField(default = (720*3600))
     added = models.DateTimeField(auto_now_add = True)
     user = models.ForeignKey(
         User,
@@ -28,6 +28,7 @@ class AuthToken(models.Model):
         verbose_name = 'User',
         null = False,
         blank = False,
+        default=1,
     )
     revoked = models.BooleanField(default = False)
     

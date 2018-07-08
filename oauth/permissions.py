@@ -2,6 +2,8 @@ from rest_framework import permissions
 from datetime import datetime, timezone
 from .models import AuthToken
 
+#revoke auth check
+
 class IsAuthenticated2(permissions.BasePermission):
     def has_permission(self, request, view):
         if 'HTTP_ACCESSTOKEN' in request.META:
