@@ -88,7 +88,7 @@ class UsernameFilterBackend(filterr.BaseFilterBackend):
 class InternAddList(viewsets.ModelViewSet):
     queryset = Intern.objects.all()
     serializer_class = InternAddSerializer
-    http_method_names = ['post', 'options']
+    http_method_names = ['get','post', 'options']
 
 class Company_UserAddList(viewsets.ModelViewSet):
     queryset = Company_User.objects.all()

@@ -45,10 +45,11 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop('password')
         email = validated_data.pop('email')
-        user, created = User.objects.get_or_create(username = email,email = email,**validated_data)
-        user.set_password(password)
-        user.save()
-        return user
+        if not User.objects.filter(username =email).exists():
+            user, created = User.objects.get_or_create(username = email,email = email,**validated_data)
+            user.set_password(password)
+            user.save()
+            return user
 
 class Custom_UserSerializer(serializers.ModelSerializer):
     """ 
@@ -142,6 +143,37 @@ class Company_UserSerializer(serializers.ModelSerializer):
         company_user ,created = Company_User.objects.update_or_create(user = user ,company=company_data ,added_user = added_user_data, **validated_data) 
         return company_user
 
+class Company_UserAddSerializer(serializers.ModelSerializer):
+
+    user = Custom_UserSerializer(required=True)
+    added_user = serializers.PrimaryKeyRelatedField(many=False, queryset=User.objects.all())    
+    company = serializers.PrimaryKeyRelatedField(many=False, queryset=Company.objects.all())    
+    token = serializers.SerializerMethodField()
+
+    def get_token(self,obj):
+        if self.context['request'].method == 'POST':
+            token = AuthToken.objects.filter(user=obj.user.user,revoked=False)
+            if len(token) >0:
+                token = list(token)[0]
+                return token.token
+            token = AuthToken.objects.create(user=obj.user.user,revoked=False)
+            return token.token
+        return ""
+
+    class Meta:
+        model = Company_User
+        fields = ['id', 'user', 'company','is_active','token','is_HR','added_user','share']
+
+    def create(self, validated_data):
+        user_data = validated_data.pop('user')
+        added_user_data = validated_data.pop('added_user')
+        company_data = validated_data.pop('company')
+
+        user = Custom_UserSerializer.create(Custom_UserSerializer(), validated_data=user_data)
+
+        company_user ,created = Company_User.objects.update_or_create(user = user ,company=company_data ,added_user = added_user_data, **validated_data) 
+        return company_user
+
 class InternSerializer(serializers.ModelSerializer):
 
     user = Custom_UserSerializer(required=True)
@@ -178,8 +210,6 @@ class InternAddSerializer(serializers.ModelSerializer):
     )
     token = serializers.SerializerMethodField()
 
-    def to_representation(self, instance):
-        return {}
     class Meta:
         model = Intern
         fields = ['id', 'user', 'skills','college','token']
