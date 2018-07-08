@@ -180,16 +180,23 @@ def resume(request):
             company_user = Company_User.objects.filter(user__user = user)
             if company_user.exists():
                 intern = Intern.objects.filter(id = request.GET['intern'])
+                if intern.exists():
+                    if not Submission.objects.filter(intern = intern[0],internship__company = company_user[0].company).exists():
+                        return Response({'err':'intern has not applied'})
             else:
                 return Response({'err':'invalid user'})
         else:
             return Response({'err':'invalid request'})
-            
         if intern.exists():
             intern = list(intern)[0]
             projects_data = Project.objects.filter(intern = intern)
             jobs_data = Job.objects.filter(intern = intern)
             degrees_data = Degree.objects.filter(intern = intern)
+            github_data = Github.objects.filter(intern = intern)
+            if github_data.exists():
+                github = GithubSerializer(github_data,many=False).data
+            else:
+                github = {}
             projects = ProjectSerializer(projects_data, many=True).data
             degrees = DegreeSerializer(degrees_data, many=True).data
             jobs = JobSerializer(jobs_data, many=True).data
@@ -198,7 +205,8 @@ def resume(request):
                 'projects':projects,
                 'jobs':jobs,
                 'intern':intern,
-                'degrees':degrees
+                'degrees':degrees,
+                'github':github
             })
         else:
             return Response({'err':'invalid intern'})
