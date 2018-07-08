@@ -16,10 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.conf.urls import url, include
-from rest_framework.routers import SimpleRouter
+from rest_framework.routers import DefaultRouter
 from api import views
 
-router = SimpleRouter()
+router = DefaultRouter()
 router.register(r'intern/add', views.InternAddList)
 router.register(r'companyuser/add', views.Company_UserAddList)
 router.register(r'intern', views.InternList)
