@@ -105,13 +105,13 @@ class InternList(viewsets.ModelViewSet):
     queryset = Intern.objects.all()
     serializer_class = InternSerializer
     pagination_class = BasicPagination
-    filter_backends = (UsernameFilterBackend,)
+    filter_backends = (UsernameFilterBackend,DeleteFilter)
 
 class Company_UserList(viewsets.ModelViewSet):
     queryset = Company_User.objects.all()
     serializer_class = Company_UserSerializer
     pagination_class = BasicPagination
-    filter_backends = (UsernameFilterBackend,)
+    filter_backends = (UsernameFilterBackend,DeleteFilter)
 
 class CategoryList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
@@ -119,20 +119,19 @@ class CategoryList(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     pagination_class = BasicPagination
 
-
 class GithubList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
     queryset = Github.objects.all()
     serializer_class = GithubSerializer
     pagination_class = BasicPagination
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend,DeleteFilter)
     filter_fields = ('intern',)
 
 class CompanyList(viewsets.ModelViewSet):
 #   added permission to add
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
-    filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,)
+    filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,DeleteFilter)
     filter_fields = ('id','email',)
     search_fields = ('name', 'email')
     ordering_fields = ('name', 'email')
@@ -153,7 +152,7 @@ class DegreeList(viewsets.ModelViewSet):
     queryset = Degree.objects.all()
     serializer_class = DegreeSerializer
     pagination_class = BasicPagination
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend,DeleteFilter)
     filter_fields = ('intern',)
 
 class JobList(viewsets.ModelViewSet):
@@ -161,14 +160,14 @@ class JobList(viewsets.ModelViewSet):
     queryset = Job.objects.all()
     pagination_class = BasicPagination
     serializer_class = JobSerializer
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend,DeleteFilter)
     filter_fields = ('intern',)
 
 class ProjectList(viewsets.ModelViewSet):
     queryset = Project.objects.select_related('intern').all()
     serializer_class = ProjectSerializer
     pagination_class = BasicPagination
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend,DeleteFilter)
     filter_fields = ('intern',)
     
 
@@ -220,7 +219,7 @@ def resume(request):
 class InternshipReadList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
     serializer_class = InternshipReadSerializer
-    filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,DurationFilterBackend,CodeIdFilterBackend,FullInternshipFilterBackend)
+    filter_backends = (DjangoFilterBackend,filterr.SearchFilter,DeleteFilter,filterr.OrderingFilter,DurationFilterBackend,CodeIdFilterBackend,FullInternshipFilterBackend)
     filter_fields = ('category','location','company','approved','skills','PPO','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
     search_fields = ('category','stipend','location','responsibilities','skills__name')
     ordering_fields = ('start', 'duration')
@@ -239,7 +238,7 @@ class InternshipReadList(viewsets.ModelViewSet):
 class InternshipSubReadList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
     serializer_class = InternshipReadSubSerializer
-    filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,DurationFilterBackend,CodeIdFilterBackend)
+    filter_backends = (DjangoFilterBackend,filterr.SearchFilter,DeleteFilter,filterr.OrderingFilter,DurationFilterBackend,CodeIdFilterBackend)
     filter_fields = ('category','location','company','approved','skills','PPO','status','visibility','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
     search_fields = ('category','stipend','location','responsibilities','skills__name')
     ordering_fields = ('start', 'duration')
@@ -274,7 +273,7 @@ class SubmissionList(viewsets.ModelViewSet):
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
     pagination_class = BasicPagination
-    filter_backends = (DjangoFilterBackend,filterr.OrderingFilter,)
+    filter_backends = (DjangoFilterBackend,filterr.OrderingFilter,DeleteFilter)
     filter_fields = ('intern','status','internship')
     ordering = ('-created_at',)
 
@@ -283,7 +282,7 @@ class SubmissionInternReadList(viewsets.ModelViewSet):
     queryset = Submission.objects.all()
     serializer_class = SubmissionInternReadSerializer
     pagination_class = BasicPagination
-    filter_backends = (DjangoFilterBackend,InternshipFilterBackend,filterr.OrderingFilter,)
+    filter_backends = (DjangoFilterBackend,InternshipFilterBackend,filterr.OrderingFilter,DeleteFilter)
     filter_fields = ('intern','status',)
     ordering = ('-created_at',)
 
@@ -291,13 +290,12 @@ class Submit(viewsets.ModelViewSet):
     queryset = Submission.objects.all()
     serializer_class = SubmitSerializer
 
-
 class SubmissionCompanyReadList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
     queryset = Submission.objects.all()
     serializer_class = SubmissionCompanyReadSerializer
     pagination_class = BasicPagination
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend,DeleteFilter)
     filter_fields = ('intern',)
 
 class QuestionList(viewsets.ModelViewSet):
@@ -305,7 +303,7 @@ class QuestionList(viewsets.ModelViewSet):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
     pagination_class = BasicPagination
-    filter_backends = (InternshipFilterBackend,)
+    filter_backends = (InternshipFilterBackend,DeleteFilter)
     '''
     de' create(self, request, *args, **kwargs):
         """
@@ -328,7 +326,7 @@ class AnswerList(viewsets.ModelViewSet):
     queryset = Answer.objects.all()
     serializer_class = AnswerSerializer
     pagination_class = BasicPagination
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend,DeleteFilter)
     filter_fields = ('question',)
 
 class AnswerReadList(viewsets.ModelViewSet):
@@ -336,5 +334,5 @@ class AnswerReadList(viewsets.ModelViewSet):
     queryset = Answer.objects.all()
     serializer_class = AnswerReadSerializer
     pagination_class = BasicPagination
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend,DeleteFilter)
     filter_fields = ('submission',)
