@@ -110,7 +110,8 @@ class Degree(models.Model):
     name =models.CharField(max_length= 20,default = 'None')
     type_of_degree =models.CharField(max_length= 20,default = 'None')
     description = models.TextField()
-    specialise = models.CharField(max_length = 32,blank = False)
+    stream = models.CharField(max_length = 32,blank = False)
+    specialise = models.CharField(max_length = 32,blank = True,default = "")
     intern = models.ForeignKey(
         Intern,
         on_delete=models.CASCADE,
