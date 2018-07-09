@@ -485,7 +485,7 @@ class SubmissionInternReadSerializer(serializers.ModelSerializer):
 class SubmissionCompanyReadSerializer(serializers.ModelSerializer):
 
     intern =InternSerializer(read_only=True)    
-    internship =InternshipReadSubSerializer(read_only=True)
+    internship =serializers.PrimaryKeyRelatedField(many=False, queryset=Internship.objects.all())    
 
     class Meta:
         model = Submission

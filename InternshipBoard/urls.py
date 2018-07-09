@@ -42,7 +42,7 @@ router.register(r'internship', views.InternshipList)
 #router.register(r'internshipavaliable', views.InternshipAvaliableList)
 
 router.register(r'submission/intern', views.SubmissionInternReadList)
-router.register(r'submission/company', views.SubmissionCompanyReadList)
+#router.register(r'submission/company', views.SubmissionCompanyReadList)
 router.register(r'submission', views.SubmissionList)
 router.register(r'question', views.QuestionList)
 router.register(r'answer/read', views.AnswerReadList)
@@ -54,5 +54,6 @@ urlpatterns = [
     path('callback/', include('clientSide.urls')),
     path('update/', views.update),
     path('resume/', views.resume),
-    url(r'^', include(router.urls))
+    path('submission/company', views.submissionCompany),
+   url(r'^', include(router.urls))
 ]

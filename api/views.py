@@ -2,7 +2,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib import admin
 from django.views.decorators.csrf import csrf_exempt
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view,permission_classes
 from django_filters import rest_framework as filters
 from rest_framework.decorators import action
 from rest_framework import viewsets, permissions, status, generics
@@ -169,7 +169,26 @@ class ProjectList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,DeleteFilter)
     filter_fields = ('intern',)
-    
+
+@api_view(['GET'])
+def submissionCompany(request):
+    res = []
+    submissions = Submission.objects.select_related('intern').filter(internship__company =Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(internship__id_code = request.GET['internship'])
+    degrees = Degree.objects.all()
+    projects = Project.objects.all()
+    jobs = Job.objects.all()
+    for submission_data in submissions:
+        submission = SubmissionCompanyReadSerializer(submission_data,many=False).data
+        degree = DegreeSerializer(degrees.filter(intern = submission_data.intern),many=True).data
+        job = JobSerializer(jobs.filter(intern = submission_data.intern),many=True).data
+        project = ProjectSerializer(projects.filter(intern = submission_data.intern),many=True).data
+        res.append({
+            'submission':submission,
+            'projects':project,
+            'jobs':job,
+            'degrees':degree,
+        })
+    return Response(res)
 
 @api_view(['GET'])
 def resume(request):
