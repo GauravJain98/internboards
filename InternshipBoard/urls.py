@@ -20,12 +20,12 @@ from rest_framework.routers import DefaultRouter
 from api import views
 
 router = DefaultRouter()
+#change the router to sim
 router.register(r'intern/add', views.InternAddList)
 router.register(r'companyuser/add', views.Company_UserAddList)
 router.register(r'intern', views.InternList)
 router.register(r'companyuser', views.Company_UserList)
 router.register(r'category', views.CategoryList)
-router.register(r'github', views.GithubList)
 router.register(r'company', views.CompanyList)
 router.register(r'siteadmin', views.SiteAdminList)
 router.register(r'skill', views.SkillList)
@@ -33,6 +33,7 @@ router.register(r'submit', views.Submit)
 #router.register(r'resume', views.Resume , base_name='resume')
 router.register(r'degree', views.DegreeList)
 router.register(r'job', views.JobList)
+router.register(r'github', views.GithubList)
 router.register(r'project', views.ProjectList)
 #router.register(r'hiring', views.HiringList)
 router.register(r'internship/read/company', views.InternshipSubReadList, base_name="Internship")

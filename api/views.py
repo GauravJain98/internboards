@@ -239,6 +239,7 @@ class InternshipSubReadList(viewsets.ModelViewSet):
     filter_fields = ('category','location','company','approved','skills','PPO','status','visibility','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
     search_fields = ('category','stipend','location','responsibilities','skills__name')
     ordering_fields = ('start', 'duration')
+    ordering = ('-created_at',)
 
     def get_queryset(self):
         queryset = Internship.objects.all()
@@ -269,16 +270,18 @@ class SubmissionList(viewsets.ModelViewSet):
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
     pagination_class = BasicPagination
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend,filterr.OrderingFilter,)
     filter_fields = ('intern','status','internship')
+    ordering = ('-created_at',)
 
 class SubmissionInternReadList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
     queryset = Submission.objects.all()
     serializer_class = SubmissionInternReadSerializer
     pagination_class = BasicPagination
-    filter_backends = (DjangoFilterBackend,InternshipFilterBackend,)
+    filter_backends = (DjangoFilterBackend,InternshipFilterBackend,filterr.OrderingFilter,)
     filter_fields = ('intern','status',)
+    ordering = ('-created_at',)
 
 class Submit(viewsets.ModelViewSet):
     queryset = Submission.objects.all()
