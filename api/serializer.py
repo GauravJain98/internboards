@@ -241,12 +241,10 @@ class GithubSerializer(serializers.ModelSerializer):
     intern = serializers.PrimaryKeyRelatedField(many=False, queryset=Intern.objects.all())    
     class Meta:
         model = Github
-        fields = ('intern','commits','stars','followers','repositories','following')
+        fields = ('intern','stars','followers','repositories','following')
 
 class SiteAdminSerializer(serializers.ModelSerializer):
-
     user = Custom_UserSerializer(required=True)
-
     class Meta:
         model = SiteAdmin
         fields = ['id', 'user','college']

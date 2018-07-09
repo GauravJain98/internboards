@@ -2,6 +2,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib import admin
 from django.views.decorators.csrf import csrf_exempt
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.decorators import api_view
 from django_filters import rest_framework as filters
 from rest_framework.decorators import action
 from rest_framework import viewsets, permissions, status, generics
@@ -167,6 +168,51 @@ class ProjectList(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('intern',)
 
+@api_view(['GET'])
+def resume(request):
+    if 'HTTP_ACCESSTOKEN' in request.META:
+        token = request.META['HTTP_ACCESSTOKEN']
+        user = AuthToken.objects.select_related('user').get(token = token).user
+        intern = Intern.objects.filter(user__user = user)
+        if intern.exists():
+            intern = intern
+        elif 'intern' in request.GET:
+            company_user = Company_User.objects.filter(user__user = user)
+            if company_user.exists():
+                intern = Intern.objects.filter(id = request.GET['intern'])
+                if intern.exists():
+                    if not Submission.objects.filter(intern = intern[0],internship__company = company_user[0].company).exists():
+                        return Response({'err':'intern has not applied'})
+            else:
+                return Response({'err':'invalid user'})
+        else:
+            return Response({'err':'invalid request'})
+        if intern.exists():
+            intern = list(intern)[0]
+            projects_data = Project.objects.filter(intern = intern)
+            jobs_data = Job.objects.filter(intern = intern)
+            degrees_data = Degree.objects.filter(intern = intern)
+            github_data = Github.objects.filter(intern = intern)
+            if github_data.exists():
+                github = GithubSerializer(github_data,many=False).data
+            else:
+                github = {}
+            projects = ProjectSerializer(projects_data, many=True).data
+            degrees = DegreeSerializer(degrees_data, many=True).data
+            jobs = JobSerializer(jobs_data, many=True).data
+            intern = InternSerializer(intern, many=False).data
+            return Response({
+                'projects':projects,
+                'jobs':jobs,
+                'intern':intern,
+                'degrees':degrees,
+                'github':github
+            })
+        else:
+            return Response({'err':'invalid intern'})
+    else:
+        return Response({'err':'no token'})
+
 class InternshipReadList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
     serializer_class = InternshipReadSerializer
@@ -209,6 +255,14 @@ def update(request):
         i.id_code = str(i.id) + str(i.code)
         i.save()
     return Http404
+
+def send(request):
+    pass
+    from_email = "internsips@studentgiri.c.api-central.net"
+    to_email = "crazcuber@gmail.com"
+    sending_mail(subject, "email_template_name", context, from_email, to_email)
+
+
 
 class SubmissionList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)

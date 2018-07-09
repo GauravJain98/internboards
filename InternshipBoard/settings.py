@@ -151,6 +151,9 @@ USE_L10N = True
 
 USE_TZ = True
 
+AWS_ACCESS_KEY_ID = "AKIAIDAQ35MK44NGEXKA"
+
+AWS_SECRET_ACCESS_KEY = "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"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/

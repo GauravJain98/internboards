@@ -52,6 +52,6 @@ urlpatterns = [
     path('o/', include('oauth.urls')),
     path('callback/', include('clientSide.urls')),
     path('update/', views.update),
-#    path('submit/', views.submit),
+    path('resume/', views.resume),
     url(r'^', include(router.urls))
 ]
