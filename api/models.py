@@ -21,6 +21,10 @@ class Address(models.Model):
     zip_code = models.CharField(max_length=8,blank=True,null=True)
     country = models.CharField(max_length=50,blank=True,null=True)
 
+    def delete(self):
+        self.archived = True
+        super().save()
+
 class College(models.Model):
     archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -32,6 +36,11 @@ class College(models.Model):
         on_delete = models.PROTECT,
         unique = True,
     )
+
+    def delete(self):
+        self.archived = True
+        super().save()
+
 ##
 class Skill(models.Model):
     archived = models.BooleanField(default=False)
@@ -44,6 +53,10 @@ class Skill(models.Model):
     )
     def __str__(self):
         return self.name
+
+    def delete(self):
+        self.archived = True
+        super().save()
 ##
 class Custom_User(models.Model):
     archived = models.BooleanField(default=False)
@@ -58,6 +71,10 @@ class Custom_User(models.Model):
         on_delete = models.PROTECT,
         unique = True,
     )
+
+    def delete(self):
+        self.archived = True
+        super().save()
 
 #Intern
 ##
@@ -74,6 +91,10 @@ class Intern(models.Model):
     hired = models.BooleanField(default=False)
     def __str__(self):
         return "{} {}".format(self.user.user.first_name,self.user.user.last_name)
+
+    def delete(self):
+        self.archived = True
+        super().save()
 ##
 class Github(models.Model):
     archived = models.BooleanField(default=False)
@@ -98,6 +119,10 @@ class Github(models.Model):
 
     def __str__(self):
         return str(self.intern)
+
+    def delete(self):
+        self.archived = True
+        super().save()
 ##
 class Degree(models.Model):
     archived = models.BooleanField(default=False)
@@ -123,6 +148,9 @@ class Degree(models.Model):
         if self.start < self.end:
             super().save(*args, **kwargs)
 
+    def delete(self):
+        self.archived = True
+        super().save()
 ##
 class Job(models.Model):
     archived = models.BooleanField(default=False)
@@ -144,6 +172,10 @@ class Job(models.Model):
     def save(self, *args, **kwargs):
         if self.start < self.end:
             super().save(*args, **kwargs)
+
+    def delete(self):
+        self.archived = True
+        super().save()
 
 ##
 class Project(models.Model):
@@ -197,6 +229,10 @@ class Company(models.Model):
         verbose_name_plural = 'Companies'
     def __str__(self):
         return self.name
+
+    def delete(self):
+        self.archived = True
+        super().save()
 ##    
 class Company_User(models.Model):
     archived = models.BooleanField(default=False)
@@ -234,6 +270,10 @@ class Company_User(models.Model):
         self.user.save()
         super().save(*args, **kwargs)
 
+    def delete(self):
+        self.archived = True
+        super().save()
+
 STRIPEND_TYPE = (
     ('Fixed' , "Fixed"),
     ('Negotiable' , "Negotiable"),
@@ -254,6 +294,10 @@ class Category(models.Model):
     name = models.CharField(max_length = 20,blank=False,unique = True)
     def __str__(self):
         return str(self.name)
+
+    def delete(self):
+        self.archived = True
+        super().save()
 ##      
 STATUS_INTERN_TYPE = (
     ('-2',''),
@@ -357,6 +401,10 @@ class Submission(models.Model):
         self.internship.save()
         super().save(*args, **kwargs)
 
+    def delete(self):
+        self.archived = True
+        super().save()
+
     class Meta:
         unique_together = (("internship", "intern"),)
 ##
@@ -372,6 +420,10 @@ class Question(models.Model):
     )
     def __str__(self):
         return str(self.question)
+
+    def delete(self):
+        self.archived = True
+        super().save()
 ##
 class Answer(models.Model):
     archived = models.BooleanField(default=False)
@@ -391,6 +443,10 @@ class Answer(models.Model):
     def __str__(self):
         return self.answer_text
 
+    def delete(self):
+        self.archived = True
+        super().save()
+
 #CustomAdmin
 ##
 class SiteAdmin(models.Model):
@@ -407,3 +463,7 @@ class SiteAdmin(models.Model):
     college = models.CharField(max_length= 20)
     def __str__(self):
         return str(self.user.id)
+
+    def delete(self):
+        self.archived = True
+        super().save()
