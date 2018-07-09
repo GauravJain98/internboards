@@ -47,7 +47,7 @@ class DurationFilterBackend(filterr.BaseFilterBackend):
 
 class DeleteFilter(filterr.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
-        return queryset.filter(delete = False)
+        return queryset.filter(archived = False)
 
 class InternshipFilterBackend(filterr.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
