@@ -241,10 +241,12 @@ class GithubSerializer(serializers.ModelSerializer):
     intern = serializers.PrimaryKeyRelatedField(many=False, queryset=Intern.objects.all())    
     class Meta:
         model = Github
-        fields = ('intern','stars','followers','repositories','following')
+        fields = ('intern','commits','stars','followers','repositories','following')
 
 class SiteAdminSerializer(serializers.ModelSerializer):
+
     user = Custom_UserSerializer(required=True)
+
     class Meta:
         model = SiteAdmin
         fields = ['id', 'user','college']
@@ -269,7 +271,7 @@ class DegreeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Degree
-        fields = ['id', 'intern','college_name','start','end','performance','name','type_of_degree','specialise']
+        fields = ['id', 'intern','college_name','start','end','performance','name','type_of_degree','specialise','stream']
     
     def validate(self, data):
         if data['start'] > data['end']:

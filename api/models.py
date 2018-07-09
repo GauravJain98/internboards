@@ -12,7 +12,7 @@ def random_n(n):
     return randint(range_start, range_end)
 
 class Address(models.Model):
-    delete = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     apartment = models.CharField(max_length=10,blank=True,null=True)
@@ -22,7 +22,7 @@ class Address(models.Model):
     country = models.CharField(max_length=50,blank=True,null=True)
 
 class College(models.Model):
-    delete = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=200,blank=False)
@@ -34,7 +34,7 @@ class College(models.Model):
     )
 ##
 class Skill(models.Model):
-    delete = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(
@@ -46,7 +46,7 @@ class Skill(models.Model):
         return self.name
 ##
 class Custom_User(models.Model):
-    delete = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     user = models.OneToOneField(
@@ -62,7 +62,7 @@ class Custom_User(models.Model):
 #Intern
 ##
 class Intern(models.Model):
-    delete = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     user = models.OneToOneField (
@@ -76,7 +76,7 @@ class Intern(models.Model):
         return "{} {}".format(self.user.user.first_name,self.user.user.last_name)
 ##
 class Github(models.Model):
-    delete = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     intern = models.OneToOneField (
@@ -100,7 +100,7 @@ class Github(models.Model):
         return str(self.intern)
 ##
 class Degree(models.Model):
-    delete = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     college_name = models.CharField(max_length=60,blank=False)
@@ -125,7 +125,7 @@ class Degree(models.Model):
 
 ##
 class Job(models.Model):
-    delete = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     position = models.CharField(max_length =60,blank=False)
@@ -147,7 +147,7 @@ class Job(models.Model):
 
 ##
 class Project(models.Model):
-    delete = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length =60,blank=False)
@@ -165,6 +165,10 @@ class Project(models.Model):
         if self.start < self.end:
             super().save(*args, **kwargs)
 
+    def delete(self):
+        self.archived = True
+        super().save()
+
 #MainApp
 def random_string():
     rnd = str(uuid4().hex)
@@ -173,7 +177,7 @@ def random_string():
     return rnd
 ##       
 class Company(models.Model):
-    delete = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=30,blank=False)
@@ -195,7 +199,7 @@ class Company(models.Model):
         return self.name
 ##    
 class Company_User(models.Model):
-    delete = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(
@@ -244,7 +248,7 @@ STRIPEND_RATE = (
 )
 ##
 class Category(models.Model):
-    delete = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length = 20,blank=False,unique = True)
@@ -261,7 +265,7 @@ STATUS_INTERN_TYPE = (
 
 
 class Internship(models.Model):
-    delete = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     applications = models.IntegerField(default=0)
@@ -313,7 +317,11 @@ class Internship(models.Model):
             self.visibility = self.applications_end + relativedelta(days=15)
             self.code = random_n(4)
         super().save(*args, **kwargs)
-
+        
+    def delete(self):
+        self.archived = True
+        super().save()
+        
     def __str__(self):
         return str(self.id)
 
@@ -328,7 +336,7 @@ STATUS_TYPE = (
 
 ##
 class Submission(models.Model):
-    delete = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     intern = models.ForeignKey (
@@ -353,7 +361,7 @@ class Submission(models.Model):
         unique_together = (("internship", "intern"),)
 ##
 class Question(models.Model):
-    delete = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     question = models.CharField(max_length=50,default='',blank=False)
@@ -366,7 +374,7 @@ class Question(models.Model):
         return str(self.question)
 ##
 class Answer(models.Model):
-    delete = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     submission = models.ForeignKey(
@@ -386,7 +394,7 @@ class Answer(models.Model):
 #CustomAdmin
 ##
 class SiteAdmin(models.Model):
-    delete = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     user = models.OneToOneField(

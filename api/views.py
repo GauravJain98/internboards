@@ -45,6 +45,10 @@ class DurationFilterBackend(filterr.BaseFilterBackend):
         else:
             return queryset
 
+class DeleteFilter(filterr.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        return queryset.filter(delete = False)
+
 class InternshipFilterBackend(filterr.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         if "internship" in request.GET and request.GET['internship'] != '':
@@ -161,12 +165,12 @@ class JobList(viewsets.ModelViewSet):
     filter_fields = ('intern',)
 
 class ProjectList(viewsets.ModelViewSet):
-    permission_classes  = (IsAuthenticated2,)
-    queryset = Project.objects.all()
+    queryset = Project.objects.select_related('intern').all()
     serializer_class = ProjectSerializer
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('intern',)
+    
 
 @api_view(['GET'])
 def resume(request):
@@ -287,20 +291,6 @@ class Submit(viewsets.ModelViewSet):
     queryset = Submission.objects.all()
     serializer_class = SubmitSerializer
 
-class Resume(ObjectMultipleModelAPIView):
-
-    querylist = (
-        {
-            'queryset': Project.objects.all(), 
-            'serializer_class': ProjectSerializer,
-            'label':'project',
-        },
-        {
-            'queryset': Job.objects.all(), 
-            'serializer_class': JobSerializer,
-            'label':'job',
-        }
-    )
 
 class SubmissionCompanyReadList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
