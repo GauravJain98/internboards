@@ -70,6 +70,7 @@ class Custom_User(models.Model):
         Address,
         on_delete = models.PROTECT,
         unique = True,
+        null=True,
     )
 
     def delete(self):
@@ -158,6 +159,12 @@ class Job(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     position = models.CharField(max_length =60,blank=False)
     organization = models.CharField(max_length =90,blank=False)
+    '''
+    organization = models.ForeignKey(
+        Organization,
+        on_delete= models.CASCADE
+    )
+    '''
     location = models.CharField(max_length =90,blank=False)
     start = models.DateField(default=datetime.date.today)
     end= models.DateField( default=datetime.date.today)
@@ -207,6 +214,9 @@ def random_string():
     while Company.objects.filter(key = rnd ):
         rnd = str(uuid4().hex)
     return rnd
+    
+    
+    
 ##       
 class Company(models.Model):
     archived = models.BooleanField(default=False)
@@ -217,11 +227,7 @@ class Company(models.Model):
     email = models.CharField(max_length=200,blank=False, default="")
     description = models.TextField(blank=False , default="")    
     key = models.CharField(max_length=128 , default = random_string ,unique=True )
-    address = models.ForeignKey(
-        Address,
-        on_delete = models.PROTECT,
-        unique = True,
-    )
+    address = models.ManyToManyField(Address)
     city = models.CharField(max_length = 100,default = "")
     hiring = models.ManyToManyField(College , related_name='hiring')
     class Meta:
@@ -340,6 +346,7 @@ class Internship(models.Model):
     code = models.CharField(max_length = 4,null=False,blank=True,default = "")
     id_code = models.CharField(max_length=20,null=False,blank=True)
     available = models.ManyToManyField(College , related_name='internships')
+    locations = models.ManyToManyField(Address)
     skills = models.ManyToManyField(
         Skill,
         null=True,
@@ -413,6 +420,7 @@ class Question(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     question = models.CharField(max_length=50,default='',blank=False)
+    placeholder = models.CharField(max_length=50,default='',blank=False)
     internship =  models.ForeignKey(
         Internship,
         on_delete=models.CASCADE,

@@ -7,6 +7,7 @@ from django_filters import rest_framework as filters
 from rest_framework.decorators import action
 from rest_framework import viewsets, permissions, status, generics
 from rest_framework import filters as rffilter
+import json
 # refactor this
 from drf_multiple_model.views import ObjectMultipleModelAPIView
 from rest_framework.response import Response
@@ -19,6 +20,34 @@ from .serializer import *
 from django.http import Http404
 from .pagination import *
 from .permissions import *
+from functools import WRAPPER_ASSIGNMENTS, update_wrapper, wraps
+
+def cache_me(cache):
+    def true_decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            self = args[0]
+            instance = args[1]
+            cache_key = '%s.%s' % (instance.facility, instance.id)
+            logger.debug('%s cache_key: %s' % (cache, cache_key))
+            if not self.request.method == 'PATCH':
+                try:
+                    data = caches[cache].get(cache_key)
+                    if data is not None:
+                        return data
+                except:
+                    pass
+            else:
+                return caches[cache].pop(cache_key)
+            logger.info('did not cache')
+            data = f(*args, **kwargs)
+            try:
+                caches[cache].set(cache_key, data)
+            except:
+                pass
+            return data
+        return wrapper
+    return true_decorator
 
 def send(html, email):
     sg =sendgrid.SendGridAPIClient(apikey='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')
@@ -107,17 +136,28 @@ class InternList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
     filter_backends = (UsernameFilterBackend,DeleteFilter)
 
+
+def loaderio(request):
+    return HttpResponse('loaderio-31e01252bfb60d0ec0fbabd93985c4ca')
+
 class Company_UserList(viewsets.ModelViewSet):
     queryset = Company_User.objects.all()
     serializer_class = Company_UserSerializer
     pagination_class = BasicPagination
     filter_backends = (UsernameFilterBackend,DeleteFilter)
 
+    @cache_me('catagory')
+    def to_representation(self, instance):
+       return super(CategorySerializer, self).to_representation(instance)
+
 class CategoryList(viewsets.ModelViewSet):
-    permission_classes  = (IsAuthenticated2,)
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = BasicPagination
+
+    @cache_me('catagory')
+    def to_representation(self, instance):
+       return super(CategorySerializer, self).to_representation(instance)
 
 class GithubList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
@@ -146,6 +186,9 @@ class SkillList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,InternPermission)
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
+    @cache_me('catagory')
+    def to_representation(self, instance):
+       return super(CategorySerializer, self).to_representation(instance)
 
 class DegreeList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
@@ -155,12 +198,20 @@ class DegreeList(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,DeleteFilter)
     filter_fields = ('intern',)
 
+    @cache_me('catagory')
+    def to_representation(self, instance):
+       return super(CategorySerializer, self).to_representation(instance)
+
 class JobList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
     queryset = Job.objects.all()
     pagination_class = BasicPagination
     serializer_class = JobSerializer
     filter_backends = (DjangoFilterBackend,DeleteFilter)
+
+    @cache_me('catagory')
+    def to_representation(self, instance):
+       return super(CategorySerializer, self).to_representation(instance)
     filter_fields = ('intern',)
 
 class ProjectList(viewsets.ModelViewSet):
@@ -170,19 +221,39 @@ class ProjectList(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,DeleteFilter)
     filter_fields = ('intern',)
 
+    @cache_me('catagory')
+    def to_representation(self, instance):
+       return super(CategorySerializer, self).to_representation(instance)
+
 @api_view(['GET'])
 def submissionCompany(request):
-    res = []
+    try:
+        status = request.GET['status']
+    except:
+        status = 0
     submissions = Submission.objects.select_related('intern').filter(internship__company =Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(internship__id_code = request.GET['internship'])
     degrees = Degree.objects.all()
     projects = Project.objects.all()
     jobs = Job.objects.all()
+    hired = len(list(submissions.filter(status = 4)))
+    interviewee = len(list(submissions.filter(status = 3)))
+    shortlisted = len(list(submissions.filter(status = 2)))
+    review_period = len(list(submissions.filter(status = 1)))
+    rejected = len(list(submissions.filter(status = 0)))
+    res = {
+        'hired':hired,
+        'shortlisted':shortlisted,
+        'review_period':review_period,
+        'rejected':rejected,
+        'interviewee':interviewee,
+        'submissions':[],
+    }
     for submission_data in submissions:
         submission = SubmissionCompanyReadSerializer(submission_data,many=False).data
         degree = DegreeSerializer(degrees.filter(intern = submission_data.intern),many=True).data
         job = JobSerializer(jobs.filter(intern = submission_data.intern),many=True).data
         project = ProjectSerializer(projects.filter(intern = submission_data.intern),many=True).data
-        res.append({
+        res['submissions'].append({
             'submission':submission,
             'projects':project,
             'jobs':job,
@@ -190,6 +261,53 @@ def submissionCompany(request):
         })
     return Response(res)
 
+@api_view(['PATCH'])
+def updateInternship(request,id):
+    validate_data = {}
+    body = json.loads(request.body.decode('utf-8'))
+    if 'status' in body:
+        validate_data['status'] = body['status']
+    if 'category' in body:
+        validate_data['category'] = body['category']
+    if 'fixed' in body:
+        validate_data['fixed'] = body['fixed']
+    if 'stipend_rate' in body:
+        validate_data['stipend_rate'] = body['stipend_rate']
+    if 'certificate' in body:
+        validate_data['certificate'] = body['certificate']
+    if 'negotiable' in body:
+        validate_data['negotiable'] = body['negotiable']
+    if 'flexible_work_hours' in body:
+        validate_data['flexible_work_hours'] = body['flexible_work_hours']
+    if 'letter_of_recommendation' in body:
+        validate_data['letter_of_recommendation'] = body['letter_of_recommendation']
+    if 'free_snacks' in body:
+        validate_data['free_snacks'] = body['free_snacks']
+    if 'informal_dress_code' in body:
+        validate_data['informal_dress_code'] = body['informal_dress_code']
+    if 'PPO' in body:
+        validate_data['PPO'] = body['PPO']
+    if 'performance_based' in body:
+        validate_data['performance_based'] = body['performance_based']
+    if 'visibility' in body:
+        validate_data['visibility'] = body['visibility']
+    if 'applications_end' in body:
+        validate_data['applications_end'] = body['applications_end']
+    if 'start' in body:
+        validate_data['start'] = body['start']
+    if 'duration' in body:
+        validate_data['duration'] = body['duration']
+    if 'responsibilities' in body:
+        validate_data['responsibilities'] = body['responsibilities']
+    if 'stipend' in body:
+        validate_data['stipend'] = body['stipend']
+    if 'location' in body:
+        validate_data['location'] = body['location']
+    internship = Internship.objects.filter(id_code=id)
+    inter = internship.update(**validate_data)
+    intern = InternshipReadSerializer(internship[0], many=False).data
+    return Response(intern)
+    
 @api_view(['GET'])
 def resume(request):
     if 'HTTP_ACCESSTOKEN' in request.META:
@@ -254,6 +372,10 @@ class InternshipReadList(viewsets.ModelViewSet):
             queryset = queryset.exclude(id = submission.internship.id)
         return queryset
 
+    @cache_me('internship_read')
+    def to_representation(self, instance):
+       return super(CategorySerializer, self).to_representation(instance)
+
 class InternshipSubReadList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
     serializer_class = InternshipReadSubSerializer
@@ -263,9 +385,10 @@ class InternshipSubReadList(viewsets.ModelViewSet):
     ordering_fields = ('start', 'duration')
     ordering = ('-created_at',)
 
+
     def get_queryset(self):
-        queryset = Internship.objects.all()
         
+        queryset = Internship.objects.all()
         return queryset
 
 class InternshipList(viewsets.ModelViewSet):
@@ -297,7 +420,6 @@ class SubmissionList(viewsets.ModelViewSet):
     ordering = ('-created_at',)
 
 class SubmissionInternReadList(viewsets.ModelViewSet):
-    permission_classes  = (IsAuthenticated2,)
     queryset = Submission.objects.all()
     serializer_class = SubmissionInternReadSerializer
     pagination_class = BasicPagination

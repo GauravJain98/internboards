@@ -18,6 +18,7 @@ from django.urls import path
 from django.conf.urls import url, include
 from rest_framework.routers import DefaultRouter
 from api import views
+from django.conf.urls.static import static
 
 router = DefaultRouter()
 #change the router to sim
@@ -52,8 +53,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('o/', include('oauth.urls')),
     path('callback/', include('clientSide.urls')),
-    path('update/', views.update),
+    url(r'^internshipUpdate/(?P<id>[-\w]+)/', views.updateInternship),
+#    path('update/', views.update),
     path('resume/', views.resume),
     path('submission/company', views.submissionCompany),
-   url(r'^', include(router.urls))
+    path('loaderio-31e01252bfb60d0ec0fbabd93985c4ca/', views.loaderio),
+    url(r'^', include(router.urls))
 ]
