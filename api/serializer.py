@@ -70,7 +70,7 @@ class Custom_UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         user = UserSerializer.create(UserSerializer(), validated_data=user_data)
-        if address in validate_data:
+        if 'address' in validated_data:
             address_data = validated_data.pop('address')
             address = AddressSerializer.create(AddressSerializer(), validated_data=address_data)
             custom_user, created = Custom_User.objects.update_or_create(user=user,address=address, **validated_data)

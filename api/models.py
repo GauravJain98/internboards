@@ -31,10 +31,9 @@ class College(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=200,blank=False)
     sub = models.CharField(max_length=200,blank=False)
-    address = models.ForeignKey(
+    address = models.OneToOneField(
         Address,
         on_delete = models.PROTECT,
-        unique = True,
     )
 
     def delete(self):
@@ -347,11 +346,7 @@ class Internship(models.Model):
     id_code = models.CharField(max_length=20,null=False,blank=True)
     available = models.ManyToManyField(College , related_name='internships')
     locations = models.ManyToManyField(Address)
-    skills = models.ManyToManyField(
-        Skill,
-        null=True,
-        blank=True
-    )
+    skills = models.ManyToManyField(Skill)
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,

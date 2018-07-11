@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework import viewsets, permissions, status, generics
 from rest_framework import filters as rffilter
 import json
+from django.views.decorators.cache import cache_page
 # refactor this
 from drf_multiple_model.views import ObjectMultipleModelAPIView
 from rest_framework.response import Response
@@ -130,7 +131,6 @@ class Company_UserAddList(viewsets.ModelViewSet):
     http_method_names = ['post', 'options']
         
 class InternList(viewsets.ModelViewSet):
-    permission_classes  = (IsAuthenticated2,)
     queryset = Intern.objects.all()
     serializer_class = InternSerializer
     pagination_class = BasicPagination
@@ -353,6 +353,15 @@ def resume(request):
     else:
         return Response({'err':'no token'})
 
+class CacheMixin(object):
+    cache_timeout = 60
+
+    def get_cache_timeout(self):
+        return self.cache_timeout
+
+    def dispatch(self, *args, **kwargs):
+        return cache_page(self.get_cache_timeout())(super(CacheMixin, self).dispatch)(*args, **kwargs)
+
 class InternshipReadList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
     serializer_class = InternshipReadSerializer
@@ -372,9 +381,6 @@ class InternshipReadList(viewsets.ModelViewSet):
             queryset = queryset.exclude(id = submission.internship.id)
         return queryset
 
-    @cache_me('internship_read')
-    def to_representation(self, instance):
-       return super(CategorySerializer, self).to_representation(instance)
 
 class InternshipSubReadList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
@@ -384,7 +390,6 @@ class InternshipSubReadList(viewsets.ModelViewSet):
     search_fields = ('category','stipend','location','responsibilities','skills__name')
     ordering_fields = ('start', 'duration')
     ordering = ('-created_at',)
-
 
     def get_queryset(self):
         
