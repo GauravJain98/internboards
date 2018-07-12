@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework import viewsets, permissions, status, generics
 from rest_framework import filters as rffilter
 import json
+from django.db.models import Count
 from django.views.decorators.cache import cache_page
 # refactor this
 from drf_multiple_model.views import ObjectMultipleModelAPIView
@@ -88,18 +89,21 @@ class InternshipFilterBackend(filterr.BaseFilterBackend):
 
 class FullInternshipFilterBackend(filterr.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
-        subs = Submission.objects.filter(status=1)
+#        subs = list(Submission.objects.select_related('internship').filter(status=1))
         queryset.filter(visibility__gt = now())
         for query in queryset:
-            sub = subs.filter(internship = query)
-            if len(sub) > 100:
+            j=0
+            for sub in query.submission.all():
+                if sub.status == 1:
+                    j= j+1
+            if j > 100 or query.status == -1:
                 queryset.exclude(id = query.id)
             '''
             if datetime.now() > query.visibility:
                 queryset.exclude(id = query.id)
             '''
         return queryset
-    
+
 class CodeIdFilterBackend(filterr.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         if 'id' in request.GET:
@@ -129,9 +133,10 @@ class Company_UserAddList(viewsets.ModelViewSet):
     queryset = Company_User.objects.all()
     serializer_class = Company_UserSerializer
     http_method_names = ['post', 'options']
-        
+
 class InternList(viewsets.ModelViewSet):
-    queryset = Intern.objects.all()
+#    permission_classes  = (IsAuthenticated2,)
+    queryset = Intern.objects.select_related('user').select_related('user__user').select_related('user__address').prefetch_related('skills').all()
     serializer_class = InternSerializer
     pagination_class = BasicPagination
     filter_backends = (UsernameFilterBackend,DeleteFilter)
@@ -141,14 +146,10 @@ def loaderio(request):
     return HttpResponse('loaderio-31e01252bfb60d0ec0fbabd93985c4ca')
 
 class Company_UserList(viewsets.ModelViewSet):
-    queryset = Company_User.objects.all()
+    queryset = Company_User.objects.select_related('user').select_related('user__address').select_related('user__user').all()
     serializer_class = Company_UserSerializer
     pagination_class = BasicPagination
     filter_backends = (UsernameFilterBackend,DeleteFilter)
-
-    @cache_me('catagory')
-    def to_representation(self, instance):
-       return super(CategorySerializer, self).to_representation(instance)
 
 class CategoryList(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -169,7 +170,7 @@ class GithubList(viewsets.ModelViewSet):
 
 class CompanyList(viewsets.ModelViewSet):
 #   added permission to add
-    queryset = Company.objects.all()
+    queryset = Company.objects.prefetch_related('hiring').prefetch_related('address').all()
     serializer_class = CompanySerializer
     filter_backends = (DjangoFilterBackend,filterr.SearchFilter,filterr.OrderingFilter,DeleteFilter)
     filter_fields = ('id','email',)
@@ -178,7 +179,7 @@ class CompanyList(viewsets.ModelViewSet):
 
 class SiteAdminList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,permissions.IsAdminUser)
-    queryset = SiteAdmin.objects.all()
+    queryset = SiteAdmin.objects.select_related('user').select_related('user__address').select_related('user__user').all()
     serializer_class = SiteAdminSerializer
     pagination_class = BasicPagination
 
@@ -186,21 +187,14 @@ class SkillList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,InternPermission)
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
-    @cache_me('catagory')
-    def to_representation(self, instance):
-       return super(CategorySerializer, self).to_representation(instance)
 
 class DegreeList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
-    queryset = Degree.objects.all()
+    queryset = Degree.objects.select_related('intern').all()
     serializer_class = DegreeSerializer
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,DeleteFilter)
     filter_fields = ('intern',)
-
-    @cache_me('catagory')
-    def to_representation(self, instance):
-       return super(CategorySerializer, self).to_representation(instance)
 
 class JobList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
@@ -208,10 +202,6 @@ class JobList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
     serializer_class = JobSerializer
     filter_backends = (DjangoFilterBackend,DeleteFilter)
-
-    @cache_me('catagory')
-    def to_representation(self, instance):
-       return super(CategorySerializer, self).to_representation(instance)
     filter_fields = ('intern',)
 
 class ProjectList(viewsets.ModelViewSet):
@@ -221,25 +211,33 @@ class ProjectList(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,DeleteFilter)
     filter_fields = ('intern',)
 
-    @cache_me('catagory')
-    def to_representation(self, instance):
-       return super(CategorySerializer, self).to_representation(instance)
-
 @api_view(['GET'])
 def submissionCompany(request):
     try:
         status = request.GET['status']
     except:
         status = 0
-    submissions = Submission.objects.select_related('intern').filter(internship__company =Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(internship__id_code = request.GET['internship'])
+    submissions = Submission.objects.select_related('intern').prefetch_related('intern__skills').select_related('intern__user').select_related('intern__user__address').select_related('intern__user__user').select_related('internship').prefetch_related('internship__skills').prefetch_related('intern__jobs').prefetch_related('intern__degrees').prefetch_related('intern__projects').all()#filter(internship__company =Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(internship__id_code = request.GET['internship'])
     degrees = Degree.objects.all()
     projects = Project.objects.all()
     jobs = Job.objects.all()
-    hired = len(list(submissions.filter(status = 4)))
-    interviewee = len(list(submissions.filter(status = 3)))
-    shortlisted = len(list(submissions.filter(status = 2)))
-    review_period = len(list(submissions.filter(status = 1)))
-    rejected = len(list(submissions.filter(status = 0)))
+    counts = Submission.objects.values('status').annotate(total = Count('status'))
+    hired = 0
+    shortlisted = 0
+    review_period = 0
+    interviewee = 0
+    rejected = 0
+    for count in counts:
+        if count['status'] == 4:
+            hired = count['total']
+        if count['status'] == 3:
+            shortlisted = count['total']
+        if count['status'] == 2:
+            review_period = count['total']
+        if count['status'] == 1:
+            hired = count['total']
+        if count['status'] == 0:
+            rejected = count['total']
     res = {
         'hired':hired,
         'shortlisted':shortlisted,
@@ -250,9 +248,9 @@ def submissionCompany(request):
     }
     for submission_data in submissions:
         submission = SubmissionCompanyReadSerializer(submission_data,many=False).data
-        degree = DegreeSerializer(degrees.filter(intern = submission_data.intern),many=True).data
-        job = JobSerializer(jobs.filter(intern = submission_data.intern),many=True).data
-        project = ProjectSerializer(projects.filter(intern = submission_data.intern),many=True).data
+        degree = DegreeSerializer(submission_data.intern.degrees,many=True).data
+        job = JobSerializer(submission_data.intern.jobs,many=True).data
+        project = ProjectSerializer(submission_data.intern.projects,many=True).data
         res['submissions'].append({
             'submission':submission,
             'projects':project,
@@ -293,8 +291,8 @@ def updateInternship(request,id):
         validate_data['visibility'] = body['visibility']
     if 'applications_end' in body:
         validate_data['applications_end'] = body['applications_end']
-    if 'start' in body:
-        validate_data['start'] = body['start']
+    if 'deadline' in body:
+        validate_data['deadline'] = body['deadline']
     if 'duration' in body:
         validate_data['duration'] = body['duration']
     if 'responsibilities' in body:
@@ -307,9 +305,31 @@ def updateInternship(request,id):
     inter = internship.update(**validate_data)
     intern = InternshipReadSerializer(internship[0], many=False).data
     return Response(intern)
-    
+
 @api_view(['GET'])
 def resume(request):
+    '''
+    intern = Intern.objects.select_related('user').select_related('user__user').select_related('user__address').get(id=6)
+    projects_data = Project.objects.filter(intern = intern)
+    jobs_data = Job.objects.filter(intern = intern)
+    degrees_data = Degree.objects.filter(intern = intern)
+    github_data = Github.objects.filter(intern = intern)
+    if github_data.exists():
+        github = GithubSerializer(github_data,many=False).data
+    else:
+        github = {}
+    projects = ProjectSerializer(projects_data, many=True).data
+    degrees = DegreeSerializer(degrees_data, many=True).data
+    jobs = JobSerializer(jobs_data, many=True).data
+    intern = InternSerializer(intern, many=False).data
+    return Response({
+        'projects':projects,
+        'jobs':jobs,
+        'intern':intern,
+        'degrees':degrees,
+        'github':github
+    })
+    '''
     if 'HTTP_ACCESSTOKEN' in request.META:
         token = request.META['HTTP_ACCESSTOKEN']
         user = AuthToken.objects.select_related('user').get(token = token).user
@@ -353,27 +373,18 @@ def resume(request):
     else:
         return Response({'err':'no token'})
 
-class CacheMixin(object):
-    cache_timeout = 60
-
-    def get_cache_timeout(self):
-        return self.cache_timeout
-
-    def dispatch(self, *args, **kwargs):
-        return cache_page(self.get_cache_timeout())(super(CacheMixin, self).dispatch)(*args, **kwargs)
-
 class InternshipReadList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
     serializer_class = InternshipReadSerializer
     filter_backends = (DjangoFilterBackend,filterr.SearchFilter,DeleteFilter,filterr.OrderingFilter,DurationFilterBackend,CodeIdFilterBackend,FullInternshipFilterBackend)
     filter_fields = ('category','location','company','approved','skills','PPO','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
     search_fields = ('category','stipend','location','responsibilities','skills__name')
-    ordering_fields = ('start', 'duration')
+    ordering_fields = ('deadline', 'duration')
 
     def get_queryset(self):
         intern = getIntern(self.request)
-        queryset = Internship.objects.all()
-        
+        queryset = Internship.objects.select_related('company').prefetch_related('submission').select_related('company_user').prefetch_related('skills').all()
+
         if not intern or 'id' in self.request.GET:
             return queryset
         submissions= Submission.objects.select_related('internship').filter(intern = intern)
@@ -381,6 +392,18 @@ class InternshipReadList(viewsets.ModelViewSet):
             queryset = queryset.exclude(id = submission.internship.id)
         return queryset
 
+class FullInternshipSubReadList(viewsets.ModelViewSet):
+    pagination_class = BasicPagination
+    serializer_class = FullInternshipReadSubSerializer
+    filter_backends = (DjangoFilterBackend,filterr.SearchFilter,DeleteFilter,filterr.OrderingFilter,DurationFilterBackend,CodeIdFilterBackend)
+    filter_fields = ('category','location','company','approved','skills','PPO','status','visibility','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
+    search_fields = ('category','stipend','location','responsibilities','skills__name')
+    ordering_fields = ('deadline', 'duration')
+    ordering = ('-created_at',)
+
+    def get_queryset(self):
+        queryset = Internship.objects.select_related('company').select_related('company_user').prefetch_related('skills').all()
+        return queryset
 
 class InternshipSubReadList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
@@ -388,17 +411,16 @@ class InternshipSubReadList(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,filterr.SearchFilter,DeleteFilter,filterr.OrderingFilter,DurationFilterBackend,CodeIdFilterBackend)
     filter_fields = ('category','location','company','approved','skills','PPO','status','visibility','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
     search_fields = ('category','stipend','location','responsibilities','skills__name')
-    ordering_fields = ('start', 'duration')
+    ordering_fields = ('deadline', 'duration')
     ordering = ('-created_at',)
 
     def get_queryset(self):
-        
-        queryset = Internship.objects.all()
+        queryset = Internship.objects.select_related('company').select_related('company_user').prefetch_related('skills').all()
         return queryset
 
 class InternshipList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
-    queryset = Internship.objects.all()
+    queryset = Internship.objects.select_related('company').select_related('company_user').prefetch_related('skills').all()
     serializer_class = InternshipSerializer
 
 def update(request):
@@ -413,23 +435,21 @@ def send(request):
     to_email = "crazcuber@gmail.com"
     sending_mail(subject, "email_template_name", context, from_email, to_email)
 
-
-
 class SubmissionList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
-    queryset = Submission.objects.all()
+    queryset = Submission.objects.select_related('intern').select_related('internship').all()
     serializer_class = SubmissionSerializer
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,filterr.OrderingFilter,DeleteFilter)
-    filter_fields = ('intern','status','internship')
+    filter_fields = ('intern','status','internship__id_code')
     ordering = ('-created_at',)
 
 class SubmissionInternReadList(viewsets.ModelViewSet):
-    queryset = Submission.objects.all()
+    queryset = Submission.objects.select_related('intern').select_related('internship').all()
     serializer_class = SubmissionInternReadSerializer
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,InternshipFilterBackend,filterr.OrderingFilter,DeleteFilter)
-    filter_fields = ('intern','status',)
+    filter_fields = ('intern','status','internship__id_code')
     ordering = ('-created_at',)
 
 class Submit(viewsets.ModelViewSet):
@@ -442,7 +462,8 @@ class SubmissionCompanyReadList(viewsets.ModelViewSet):
     serializer_class = SubmissionCompanyReadSerializer
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,DeleteFilter)
-    filter_fields = ('intern',)
+    filter_fields = ('intern','status','internship__id_code')
+    ordering = ('-created_at',)
 
 class QuestionList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
@@ -454,7 +475,7 @@ class QuestionList(viewsets.ModelViewSet):
     de' create(self, request, *args, **kwargs):
         """
         #checks if post request data is an array initializes serializer with many=True
-        else executes default CreateModelMixin.create function 
+        else executes default CreateModelMixin.create function
         """
         is_many = isinstance(request.data, list)
         if not is_many:

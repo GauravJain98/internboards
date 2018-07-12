@@ -89,8 +89,6 @@ class Intern(models.Model):
     skills = models.ManyToManyField(Skill)
     college = models.CharField(max_length=20,blank=True,null=True, default="")
     hired = models.BooleanField(default=False)
-    def __str__(self):
-        return "{} {}".format(self.user.user.first_name,self.user.user.last_name)
 
     def delete(self):
         self.archived = True
@@ -115,7 +113,7 @@ class Github(models.Model):
     owned_public_repos = models.IntegerField(default=0,null = False,blank=False)
     collaborators = models.IntegerField(default=0,null = False,blank=False)
     url = models.CharField(max_length=200,null = False,blank=False)
-    
+
 
     def __str__(self):
         return str(self.intern)
@@ -140,7 +138,8 @@ class Degree(models.Model):
     intern = models.ForeignKey(
         Intern,
         on_delete=models.CASCADE,
-    ) 
+        related_name="degrees"
+    )
     def __str__(self):
         return str(self.id)
 
@@ -171,6 +170,7 @@ class Job(models.Model):
     intern = models.ForeignKey(
         Intern,
         on_delete = models.CASCADE,
+        related_name="jobs"
     )
     def __str__(self):
         return str(self.id)
@@ -195,10 +195,11 @@ class Project(models.Model):
     intern = models.ForeignKey(
         Intern,
         on_delete = models.CASCADE,
+        related_name="projects"
     )
     def __str__(self):
         return str(self.id)
-        
+
     def save(self, *args, **kwargs):
         if self.start < self.end:
             super().save(*args, **kwargs)
@@ -213,10 +214,10 @@ def random_string():
     while Company.objects.filter(key = rnd ):
         rnd = str(uuid4().hex)
     return rnd
-    
-    
-    
-##       
+
+
+
+##
 class Company(models.Model):
     archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -224,7 +225,7 @@ class Company(models.Model):
     name = models.CharField(max_length=30,blank=False)
     website = models.CharField(max_length=60,blank=False, default="")
     email = models.CharField(max_length=200,blank=False, default="")
-    description = models.TextField(blank=False , default="")    
+    description = models.TextField(blank=False , default="")
     key = models.CharField(max_length=128 , default = random_string ,unique=True )
     address = models.ManyToManyField(Address)
     city = models.CharField(max_length = 100,default = "")
@@ -238,7 +239,7 @@ class Company(models.Model):
     def delete(self):
         self.archived = True
         super().save()
-##    
+##
 class Company_User(models.Model):
     archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -254,7 +255,7 @@ class Company_User(models.Model):
         Company,
         on_delete=models.CASCADE,
         verbose_name = 'Company',
-    )    
+    )
     is_active = models.BooleanField(default = 'False')
     is_HR = models.BooleanField(default = 'True')
     added_user = models.ForeignKey(
@@ -303,13 +304,11 @@ class Category(models.Model):
     def delete(self):
         self.archived = True
         super().save()
-##      
+##
 STATUS_INTERN_TYPE = (
-    ('-2',''),
-    ('-1','Position Filled'),
-    ('0','Rejected'),
-    ('1','Review Period'),
-    ('2','Shortlisted'),
+    ('-1','Closed'),
+    ('0','Active'),
+    ('1','Follow up'),
 )
 
 
@@ -318,7 +317,7 @@ class Internship(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     applications = models.IntegerField(default=0)
-    selected = models.IntegerField(default=0)   
+    selected = models.IntegerField(default=0)
     approved = models.BooleanField(default = 'False')
     denied = models.BooleanField(default = 'False')
     allowed = models.BooleanField(default = 'False')
@@ -335,7 +334,7 @@ class Internship(models.Model):
     negotiable=models.BooleanField(default = 'False')
     performance_based=models.BooleanField(default = 'False')
     category = models.CharField(max_length= 20,default = 'None')
-    start = models.DateField(auto_now=False, auto_now_add=False)
+    deadline = models.DateField(auto_now=False, auto_now_add=False)
     applications_end = models.DateField(auto_now=False, auto_now_add=False)
     visibility = models.DateField(auto_now=False, auto_now_add=False)
     duration= models.IntegerField(default=0,null=True,blank=True)
@@ -363,11 +362,11 @@ class Internship(models.Model):
             self.visibility = self.applications_end + relativedelta(days=15)
             self.code = random_n(4)
         super().save(*args, **kwargs)
-        
+
     def delete(self):
         self.archived = True
         super().save()
-        
+
     def __str__(self):
         return str(self.id)
 
@@ -394,6 +393,7 @@ class Submission(models.Model):
         Internship,
         on_delete=models.CASCADE,
         verbose_name = 'Internship',
+        related_name="submission"
     )
     status = models.IntegerField(default = 1)
     selected = models.BooleanField(default = 'False')
@@ -442,7 +442,7 @@ class Answer(models.Model):
     question = models.ForeignKey(
         Question,
         on_delete=models.CASCADE,
-    ) 
+    )
     def __str__(self):
         return self.answer_text
 
