@@ -218,9 +218,6 @@ def submissionCompany(request):
     except:
         status = 0
     submissions = Submission.objects.select_related('intern').prefetch_related('intern__skills').select_related('intern__user').select_related('intern__user__address').select_related('intern__user__user').select_related('internship').prefetch_related('internship__skills').prefetch_related('intern__jobs').prefetch_related('intern__degrees').prefetch_related('intern__projects').all()#filter(internship__company =Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(internship__id_code = request.GET['internship'])
-    degrees = Degree.objects.all()
-    projects = Project.objects.all()
-    jobs = Job.objects.all()
     counts = Submission.objects.values('status').annotate(total = Count('status'))
     hired = 0
     shortlisted = 0
@@ -428,13 +425,13 @@ def update(request):
         i.id_code = str(i.id) + str(i.code)
         i.save()
     return Http404
-
+'''
 def send(request):
     pass
     from_email = "internsips@studentgiri.c.api-central.net"
     to_email = "crazcuber@gmail.com"
     sending_mail(subject, "email_template_name", context, from_email, to_email)
-
+'''
 class SubmissionList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
     queryset = Submission.objects.select_related('intern').select_related('internship').all()

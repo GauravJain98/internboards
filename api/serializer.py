@@ -55,6 +55,7 @@ class UserSerializer(serializers.ModelSerializer):
             user.set_password(password)
             user.save()
             return user
+        raise serializers.ValidationError("Same Email")
 
 class Custom_UserSerializer(serializers.ModelSerializer):
     """
@@ -72,12 +73,9 @@ class Custom_UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         user = UserSerializer.create(UserSerializer(), validated_data=user_data)
-        if 'address' in validated_data:
-            address_data = validated_data.pop('address')
-            address = AddressSerializer.create(AddressSerializer(), validated_data=address_data)
-            custom_user, created = Custom_User.objects.update_or_create(user=user,address=address, **validated_data)
-        else:
-            custom_user, created = Custom_User.objects.update_or_create(user=user, **validated_data)
+        address_data = validated_data.pop('address')
+        address = AddressSerializer.create(AddressSerializer(), validated_data=address_data)
+        custom_user, created = Custom_User.objects.update_or_create(user=user,address=address, **validated_data)
         return custom_user
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -199,8 +197,8 @@ class InternSerializer(serializers.ModelSerializer):
         user_data = validated_data.pop('user')
         skills_data = validated_data.pop('skills')
 
-        user = Custom_UserSerializer.create(Custom_UserSerializer(), validated_data=user_data)
-        intern ,created = Intern.objects.update_or_create(user = user , **validated_data)
+        cuser = Custom_UserSerializer.create(Custom_UserSerializer(), validated_data=user_data)
+        intern ,created = Intern.objects.update_or_create(user = cuser , **validated_data)
 
         for skill in skills_data:
             intern.skills.add(skill)
@@ -231,13 +229,16 @@ class InternAddSerializer(serializers.ModelSerializer):
             token = AuthToken.objects.create(user=obj.user.user,revoked=False)
             return token.token
         return ""
+    def to_representation(self, instance):
+
+        return {}
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         skills_data = validated_data.pop('skills')
 
-        user = Custom_UserSerializer.create(Custom_UserSerializer(), validated_data=user_data)
-        intern ,created = Intern.objects.update_or_create(user = user , **validated_data)
+        cuser = Custom_UserSerializer.create(Custom_UserSerializer(), validated_data=user_data)
+        intern ,created = Intern.objects.update_or_create(user = cuser , **validated_data)
 
         for skill in skills_data:
             intern.skills.add(skill)
