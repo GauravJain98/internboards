@@ -306,9 +306,9 @@ class Category(models.Model):
         super().save()
 ##
 STATUS_INTERN_TYPE = (
-    ('-1','Closed'),
-    ('0','Active'),
-    ('1','Follow up'),
+    ('0','Closed'),
+    ('1','Active'),
+    ('2','Follow up'),
 )
 
 
@@ -437,6 +437,7 @@ class Answer(models.Model):
         on_delete=models.CASCADE,
         verbose_name = 'Submission',
         null=True,
+        related_name="answer"
     )
     answer_text = models.TextField(blank=False , default = "")
     question = models.ForeignKey(

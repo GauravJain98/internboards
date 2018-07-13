@@ -216,26 +216,47 @@ def submissionCompany(request):
     try:
         status = request.GET['status']
     except:
-        status = 0
-    submissions = Submission.objects.select_related('intern').prefetch_related('intern__skills').select_related('intern__user').select_related('intern__user__address').select_related('intern__user__user').select_related('internship').prefetch_related('internship__skills').prefetch_related('intern__jobs').prefetch_related('intern__degrees').prefetch_related('intern__projects').all()#filter(internship__company =Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(internship__id_code = request.GET['internship'])
-    counts = Submission.objects.values('status').annotate(total = Count('status'))
+        if 'id' in request.GET:
+            id = request.GET['id']
+        else:
+            status = 0
+    if 'id' in request.GET:
+        submissions = Submission.objects.select_related('intern').prefetch_related('intern__skills').prefetch_related('answer').prefetch_related('answer__question').select_related('intern__user').select_related('intern__user__address').select_related('intern__user__user').select_related('internship').prefetch_related('internship__skills').prefetch_related('intern__jobs').prefetch_related('intern__degrees').prefetch_related('intern__projects').filter(internship__company =Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(internship__id_code = request.GET['internship'])
+    else:
+        submissions = Submission.objects.select_related('intern').prefetch_related('intern__skills').prefetch_related('answer').prefetch_related('answer__question').select_related('intern__user').select_related('intern__user__address').select_related('intern__user__user').select_related('internship').prefetch_related('internship__skills').prefetch_related('intern__jobs').prefetch_related('intern__degrees').prefetch_related('intern__projects').filter(internship__company =Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(status=status).filter(internship__id_code = request.GET['internship'])
+    if 'id' in request.GET:
+        counts = Submission.objects.filter(internship__company =Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(internship__id_code = submissions[0].internship.id_code).values('status').annotate(total = Count('status'))
+    else:
+        counts = Submission.objects.filter(internship__company =Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(internship__id_code = request.GET['internship']).values('status').annotate(total = Count('status'))
     hired = 0
     shortlisted = 0
     review_period = 0
     interviewee = 0
     rejected = 0
+    nextl = False
+    if 'id' in request.GET:
+        for submission in submissions:
+            if nextl:
+                nextl = submission.id
+                print(nextl)
+                submission = submissions.filter(id=id)
+                break
+            nextl = (str(submission.id) == str(id))
+    if nextl == True:
+        nextl =False
     for count in counts:
         if count['status'] == 4:
             hired = count['total']
         if count['status'] == 3:
-            shortlisted = count['total']
+            interviewee = count['total']
         if count['status'] == 2:
-            review_period = count['total']
+            shortlisted = count['total']
         if count['status'] == 1:
-            hired = count['total']
+            review_period = count['total']
         if count['status'] == 0:
             rejected = count['total']
     res = {
+        'next':nextl,
         'hired':hired,
         'shortlisted':shortlisted,
         'review_period':review_period,
@@ -243,16 +264,19 @@ def submissionCompany(request):
         'interviewee':interviewee,
         'submissions':[],
     }
+
     for submission_data in submissions:
         submission = SubmissionCompanyReadSerializer(submission_data,many=False).data
         degree = DegreeSerializer(submission_data.intern.degrees,many=True).data
         job = JobSerializer(submission_data.intern.jobs,many=True).data
         project = ProjectSerializer(submission_data.intern.projects,many=True).data
+        questions = AnswerReadSerializer(submission_data.answer,many=True).data
         res['submissions'].append({
             'submission':submission,
             'projects':project,
             'jobs':job,
             'degrees':degree,
+            'questions':questions,
         })
     return Response(res)
 
@@ -305,7 +329,6 @@ def updateInternship(request,id):
 
 @api_view(['GET'])
 def resume(request):
-    '''
     intern = Intern.objects.select_related('user').select_related('user__user').select_related('user__address').get(id=6)
     projects_data = Project.objects.filter(intern = intern)
     jobs_data = Job.objects.filter(intern = intern)
@@ -369,6 +392,7 @@ def resume(request):
             return Response({'err':'invalid intern'})
     else:
         return Response({'err':'no token'})
+    '''
 
 class InternshipReadList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
@@ -464,7 +488,7 @@ class SubmissionCompanyReadList(viewsets.ModelViewSet):
 
 class QuestionList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
-    queryset = Question.objects.all()
+    queryset = Question.objects.select_related('internship').all()
     serializer_class = QuestionSerializer
     pagination_class = BasicPagination
     filter_backends = (InternshipFilterBackend,DeleteFilter)
@@ -495,7 +519,7 @@ class AnswerList(viewsets.ModelViewSet):
 
 class AnswerReadList(viewsets.ModelViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
-    queryset = Answer.objects.all()
+    queryset = Answer.objects.select_related('question').select_related('question__internship').all()
     serializer_class = AnswerReadSerializer
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,DeleteFilter)

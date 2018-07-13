@@ -390,7 +390,7 @@ class InternshipReadSerializer(serializers.ModelSerializer):
     applied = serializers.SerializerMethodField()
     class Meta:
         model =  Internship
-        fields = ['id','category','company','skills','company_user','status','applied','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend','location','stipend_rate','code']
+        fields = ['id','category','company','skills','company_user','applied','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend','location','stipend_rate','code']
 
     def get_applied(self, obj):
 
@@ -525,7 +525,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Submission
-        fields = ['id', 'intern','college','internship']
+        fields = ['id', 'intern','college','internship','status']
 
     def validate(self, data):
         if self.context['request'].method != 'PATCH':
