@@ -8,7 +8,7 @@ from rest_framework.decorators import action
 from rest_framework import viewsets, permissions, status, generics
 from rest_framework import filters as rffilter
 import json
-from django.db.models import Count
+from django.db.models import Count,Value
 from django.views.decorators.cache import cache_page
 # refactor this
 from drf_multiple_model.views import ObjectMultipleModelAPIView
@@ -212,6 +212,7 @@ class ProjectList(viewsets.ModelViewSet):
     filter_fields = ('intern',)
 
 @api_view(['GET'])
+@permission_classes((IsAuthenticated2,))
 def submissionCompany(request):
     try:
         status = request.GET['status']
@@ -221,11 +222,21 @@ def submissionCompany(request):
         else:
             status = 0
     if 'id' in request.GET:
-        submissions = Submission.objects.select_related('intern').prefetch_related('intern__skills').prefetch_related('answer').prefetch_related('answer__question').select_related('intern__user').select_related('intern__user__address').select_related('intern__user__user').select_related('internship').prefetch_related('internship__skills').prefetch_related('intern__jobs').prefetch_related('intern__degrees').prefetch_related('intern__projects').filter(internship__company =Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(internship__id_code = request.GET['internship'])
+        internship = Internship.objects.select_related('company').get(id_code = "906559")
+        cuser = Company_User.objects.select_related('company').filter(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user)
+        if cuser.count() == 0:
+            return Response({
+                "error":"Invalid user"
+            })
+        if internship.company != cuser.first().company:
+            return Response({
+                'error':'Internship does not exist'
+            })
+        submissions = Submission.objects.select_related('intern').prefetch_related('intern__skills').prefetch_related('answer').prefetch_related('answer__question').select_related('intern__user').select_related('intern__user__address').select_related('intern__user__user').select_related('internship').prefetch_related('internship__skills').prefetch_related('intern__jobs').prefetch_related('intern__degrees').prefetch_related('intern__projects').filter(internship = internship)#request.GET['internship'])
     else:
-        submissions = Submission.objects.select_related('intern').prefetch_related('intern__skills').prefetch_related('answer').prefetch_related('answer__question').select_related('intern__user').select_related('intern__user__address').select_related('intern__user__user').select_related('internship').prefetch_related('internship__skills').prefetch_related('intern__jobs').prefetch_related('intern__degrees').prefetch_related('intern__projects').filter(internship__company =Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(status=status).filter(internship__id_code = request.GET['internship'])
+        submissions = Submission.objects.select_related('intern').prefetch_related('intern__skills').prefetch_related('answer').prefetch_related('answer__question').select_related('intern__user').select_related('intern__user__address').select_related('intern__user__user').select_related('internship').prefetch_related('internship__skills').prefetch_related('intern__jobs').prefetch_related('intern__degrees').prefetch_related('intern__projects').filter(internship__company = Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(status=status).filter(internship__id_code = request.GET['internship'])
     if 'id' in request.GET:
-        counts = Submission.objects.filter(internship__company =Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(internship__id_code = submissions[0].internship.id_code).values('status').annotate(total = Count('status'))
+        counts = Submission.objects.all().values('status').annotate(total = Count('status'))
     else:
         counts = Submission.objects.filter(internship__company =Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(internship__id_code = request.GET['internship']).values('status').annotate(total = Count('status'))
     hired = 0
@@ -330,8 +341,8 @@ def updateInternship(request,id):
 @api_view(['GET'])
 def resume(request):
     intern = Intern.objects.select_related('user').select_related('user__user').select_related('user__address').get(id=6)
-    projects_data = Project.objects.filter(intern = intern)
-    jobs_data = Job.objects.filter(intern = intern)
+    projects_data = Project.objects.filter(intern = intern)#.values_list('created_at','updated_at','name','description','location','start','end','description','intern').
+    jobs_data = Job.objects.filter(intern = intern)#.values_list('created_at','updated_at','position','organiztion','location','start','end','description','intern').annotate(name=Value('xxx', output_field=models.CharField()))
     degrees_data = Degree.objects.filter(intern = intern)
     github_data = Github.objects.filter(intern = intern)
     if github_data.exists():

@@ -234,7 +234,7 @@ class Company(models.Model):
         verbose_name = 'Company'
         verbose_name_plural = 'Companies'
     def __str__(self):
-        return self.name
+        return self.name + '(' + str(self.id) + ')'
 
     def delete(self):
         self.archived = True
