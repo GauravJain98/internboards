@@ -178,13 +178,13 @@ class CompanyList(viewsets.ModelViewSet):
     ordering_fields = ('name', 'email')
 
 class SiteAdminList(viewsets.ModelViewSet):
-    permission_classes  = (IsAuthenticated2,permissions.IsAdminUser)
+    permission_classes  = (IsAuthenticated2,)#,permissions.IsAdminUser)
     queryset = SiteAdmin.objects.select_related('user').select_related('user__address').select_related('user__user').all()
     serializer_class = SiteAdminSerializer
     pagination_class = BasicPagination
 
 class SkillList(viewsets.ModelViewSet):
-    permission_classes  = (IsAuthenticated2,InternPermission)
+    permission_classes  = (IsAuthenticated2,)
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
 
@@ -222,6 +222,7 @@ def submissionCompany(request):
         else:
             status = 0
     if 'id' in request.GET:
+        '''
         internship = Internship.objects.select_related('company').get(id_code = "906559")
         cuser = Company_User.objects.select_related('company').filter(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user)
         if cuser.count() == 0:
@@ -232,7 +233,8 @@ def submissionCompany(request):
             return Response({
                 'error':'Internship does not exist'
             })
-        submissions = Submission.objects.select_related('intern').prefetch_related('intern__skills').prefetch_related('answer').prefetch_related('answer__question').select_related('intern__user').select_related('intern__user__address').select_related('intern__user__user').select_related('internship').prefetch_related('internship__skills').prefetch_related('intern__jobs').prefetch_related('intern__degrees').prefetch_related('intern__projects').filter(internship = internship)#request.GET['internship'])
+        '''
+        submissions = Submission.objects.select_related('intern').prefetch_related('intern__skills').prefetch_related('answer').prefetch_related('answer__question').select_related('intern__user').select_related('intern__user__address').select_related('intern__user__user').select_related('internship').prefetch_related('internship__skills').prefetch_related('intern__jobs').prefetch_related('intern__degrees').prefetch_related('intern__projects').filter(internship__id =90)# internship)#request.GET['internship'])
     else:
         submissions = Submission.objects.select_related('intern').prefetch_related('intern__skills').prefetch_related('answer').prefetch_related('answer__question').select_related('intern__user').select_related('intern__user__address').select_related('intern__user__user').select_related('internship').prefetch_related('internship__skills').prefetch_related('intern__jobs').prefetch_related('intern__degrees').prefetch_related('intern__projects').filter(internship__company = Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(status=status).filter(internship__id_code = request.GET['internship'])
     if 'id' in request.GET:
@@ -477,12 +479,12 @@ class SubmissionList(viewsets.ModelViewSet):
     ordering = ('-created_at',)
 
 class SubmissionInternReadList(viewsets.ModelViewSet):
-    queryset = Submission.objects.select_related('intern').select_related('internship').all()
     serializer_class = SubmissionInternReadSerializer
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,InternshipFilterBackend,filterr.OrderingFilter,DeleteFilter)
     filter_fields = ('intern','status','internship__id_code')
     ordering = ('-created_at',)
+    queryset = Submission.objects.select_related('intern').prefetch_related('intern__skills').prefetch_related('internship__skills').select_related('intern__user').select_related('intern__user__user').select_related('intern__user__address').select_related('internship').select_related('internship__company').all()
 
 class Submit(viewsets.ModelViewSet):
     queryset = Submission.objects.all()
