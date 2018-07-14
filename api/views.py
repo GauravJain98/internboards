@@ -222,7 +222,6 @@ def submissionCompany(request):
         else:
             status = 0
     if 'id' in request.GET:
-        '''
         internship = Internship.objects.select_related('company').get(id_code = "906559")
         cuser = Company_User.objects.select_related('company').filter(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user)
         if cuser.count() == 0:
@@ -233,8 +232,7 @@ def submissionCompany(request):
             return Response({
                 'error':'Internship does not exist'
             })
-        '''
-        submissions = Submission.objects.select_related('intern').prefetch_related('intern__skills').prefetch_related('answer').prefetch_related('answer__question').select_related('intern__user').select_related('intern__user__address').select_related('intern__user__user').select_related('internship').prefetch_related('internship__skills').prefetch_related('intern__jobs').prefetch_related('intern__degrees').prefetch_related('intern__projects').filter(internship__id =90)# internship)#request.GET['internship'])
+        submissions = Submission.objects.select_related('intern').prefetch_related('intern__skills').prefetch_related('answer').prefetch_related('answer__question').select_related('intern__user').select_related('intern__user__address').select_related('intern__user__user').select_related('internship').prefetch_related('internship__skills').prefetch_related('intern__jobs').prefetch_related('intern__degrees').prefetch_related('intern__projects').filter(internship = internship)#request.GET['internship'])
     else:
         submissions = Submission.objects.select_related('intern').prefetch_related('intern__skills').prefetch_related('answer').prefetch_related('answer__question').select_related('intern__user').select_related('intern__user__address').select_related('intern__user__user').select_related('internship').prefetch_related('internship__skills').prefetch_related('intern__jobs').prefetch_related('intern__degrees').prefetch_related('intern__projects').filter(internship__company = Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(status=status).filter(internship__id_code = request.GET['internship'])
     if 'id' in request.GET:
@@ -342,6 +340,7 @@ def updateInternship(request,id):
 
 @api_view(['GET'])
 def resume(request):
+    ''''
     intern = Intern.objects.select_related('user').select_related('user__user').select_related('user__address').get(id=6)
     projects_data = Project.objects.filter(intern = intern)#.values_list('created_at','updated_at','name','description','location','start','end','description','intern').
     jobs_data = Job.objects.filter(intern = intern)#.values_list('created_at','updated_at','position','organiztion','location','start','end','description','intern').annotate(name=Value('xxx', output_field=models.CharField()))
@@ -405,7 +404,6 @@ def resume(request):
             return Response({'err':'invalid intern'})
     else:
         return Response({'err':'no token'})
-    '''
 
 class InternshipReadList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
@@ -505,8 +503,7 @@ class QuestionList(viewsets.ModelViewSet):
     serializer_class = QuestionSerializer
     pagination_class = BasicPagination
     filter_backends = (InternshipFilterBackend,DeleteFilter)
-    '''
-    de' create(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         """
         #checks if post request data is an array initializes serializer with many=True
         else executes default CreateModelMixin.create function
@@ -520,7 +517,6 @@ class QuestionList(viewsets.ModelViewSet):
             self.perform_create(serializer)
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-        '''
 
 class AnswerList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
