@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'drf_multiple_model',
     'django_filters',
     'debug_toolbar',
+    'pympler'
 ]
 
 
@@ -85,6 +86,7 @@ DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.signals.SignalsPanel',
     'debug_toolbar.panels.logging.LoggingPanel',
     'debug_toolbar.panels.redirects.RedirectsPanel',
+    'pympler.panels.MemoryPanel',
 ]
 
 ROOT_URLCONF = 'InternshipBoard.urls'
@@ -123,7 +125,6 @@ DATABASES = {
         'PORT':'3306',
     }
 }
-'''
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
@@ -133,7 +134,6 @@ CACHES = {
 
 CACHE_MIDDLEWARE_SECONDS = 2
 
-'''
 
 
 

@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework import viewsets, permissions, status, generics
 from rest_framework import filters as rffilter
 import json
+from django.shortcuts import get_object_or_404
 from django.db.models import Count,Value
 from django.views.decorators.cache import cache_page
 # refactor this
@@ -187,6 +188,17 @@ class SkillList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
+    def list(self, request, *args, **kwargs):
+        instance = self.get_queryset()
+        serializer = self.serializer_class(instance,many=True)
+        data = serializer.data
+        # here you can manipulate your data response
+        return JsonResponse(data,safe=False)
+    def retrieve(self, request, pk=None):
+        queryset = self.get_queryset()
+        instance = get_object_or_404(queryset, pk=pk)
+        serializer = self.serializer_class(instance,many=False)
+        return JsonResponse(serializer.data)
 
 class DegreeList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
@@ -272,7 +284,7 @@ def submissionCompany(request):
             'degrees':degree,
             'questions':questions,
         })
-    return Response(res)
+    return JsonResponse(res)
 
     '''
     try:
@@ -350,7 +362,7 @@ def submissionCompany(request):
             'degrees':degree,
             'questions':questions,
         })
-    return Response(res)
+    return JsonResponse(res)
 
 @api_view(['PATCH'])
 def updateInternship(request,id):
@@ -397,11 +409,12 @@ def updateInternship(request,id):
     internship = Internship.objects.filter(id_code=id)
     inter = internship.update(**validate_data)
     intern = InternshipReadSerializer(internship[0], many=False).data
-    return Response(intern)
+    return JsonResponse(intern)
+
+from django.core import serializers
 
 @api_view(['GET'])
 def resume(request):
-    ''''
     intern = Intern.objects.select_related('user').select_related('user__user').select_related('user__address').get(id=6)
     projects_data = Project.objects.filter(intern = intern)#.values_list('created_at','updated_at','name','description','location','start','end','description','intern').
     jobs_data = Job.objects.filter(intern = intern)#.values_list('created_at','updated_at','position','organiztion','location','start','end','description','intern').annotate(name=Value('xxx', output_field=models.CharField()))
@@ -415,7 +428,7 @@ def resume(request):
     degrees = DegreeSerializer(degrees_data, many=True).data
     jobs = JobSerializer(jobs_data, many=True).data
     intern = InternSerializer(intern, many=False).data
-    return Response({
+    return JsonResponse({
         'projects':projects,
         'jobs':jobs,
         'intern':intern,
@@ -454,7 +467,7 @@ def resume(request):
             degrees = DegreeSerializer(degrees_data, many=True).data
             jobs = JobSerializer(jobs_data, many=True).data
             intern = InternSerializer(intern, many=False).data
-            return Response({
+            return JsonResponse({
                 'projects':projects,
                 'jobs':jobs,
                 'intern':intern,
@@ -465,6 +478,7 @@ def resume(request):
             return Response({'err':'invalid intern'})
     else:
         return Response({'err':'no token'})
+    '''
 
 class InternshipReadList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
@@ -484,6 +498,40 @@ class InternshipReadList(viewsets.ModelViewSet):
         for submission in submissions:
             queryset = queryset.exclude(id = submission.internship.id)
         return queryset
+
+    def list(self, request, *args, **kwargs):
+        var = request.GET.copy()
+        if 'page' in request.GET:
+            page = var.pop('page')[0]
+        else:
+            page = 1
+        if 'limit' in request.GET:
+            limit = var.pop('limit')[0]
+        else:
+            limit = 10
+        cache.delete(self.__class__.__name__ + page + limit)
+        if cache.get(self.__class__.__name__ + page + limit) is None:
+            instance = self.filter_queryset(self.get_queryset())[(int(page) - 1)*int(limit):int(page)*int(limit)]
+            serializer =self.serializer_class(instance,many=True)
+            data = serializer.data
+            cache.set(self.__class__.__name__ + page + limit,data , 3600*24)
+        else:
+            data = cache.get(self.__class__.__name__ + page + limit)
+        # here you can manipulate your data response
+        return Response({
+                "result":data
+            })
+
+    def retrieve(self, request, pk=None):
+        if cache.get(self.__class__.__name__ + pk) is None:
+            queryset = self.get_queryset()
+            instance = get_object_or_404(queryset, pk=int(pk[:-4]))
+            data = self.serializer_class(instance,many=False).data
+            cache.set(self.__class__.__name__+pk,data , 3600*24)
+        else:
+            data = cache.get(self.__class__.__name__+pk)
+
+        return Response(data)
 
 class FullInternshipSubReadList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
