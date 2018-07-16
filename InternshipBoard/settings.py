@@ -45,12 +45,10 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.messages',
+#    'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
-    'rest_framework_cache',
-    'drf_multiple_model',
     'django_filters',
     'debug_toolbar',
     'pympler'

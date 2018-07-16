@@ -58,6 +58,9 @@ urlpatterns = [
     url(r'^internshipUpdate/(?P<id>[-\w]+)/', views.updateInternship),
 #    path('update/', views.update),
     path('resume/', views.resume),
+    path('passchange/', views.passChange),
+    path('forgot_check/<code>/', views.forgot),
+    path('forgot/', views.forgot),
     path('submission/company/', views.submissionCompany),
     url(r'^', include(router.urls))
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -20,40 +20,16 @@ from django.utils.timezone import now
 from rest_framework import filters as filterr
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, TokenHasScope
 from .serializer import *
+import sendgrid
+import os
+from sendgrid.helpers.mail import *
 from django.http import Http404
 from .pagination import *
 from .permissions import *
 from functools import WRAPPER_ASSIGNMENTS, update_wrapper, wraps
 
-def cache_me(cache):
-    def true_decorator(f):
-        @wraps(f)
-        def wrapper(*args, **kwargs):
-            self = args[0]
-            instance = args[1]
-            cache_key = '%s.%s' % (instance.facility, instance.id)
-            logger.debug('%s cache_key: %s' % (cache, cache_key))
-            if not self.request.method == 'PATCH':
-                try:
-                    data = caches[cache].get(cache_key)
-                    if data is not None:
-                        return data
-                except:
-                    pass
-            else:
-                return caches[cache].pop(cache_key)
-            logger.info('did not cache')
-            data = f(*args, **kwargs)
-            try:
-                caches[cache].set(cache_key, data)
-            except:
-                pass
-            return data
-        return wrapper
-    return true_decorator
-
 def send(html, email):
-    sg =sendgrid.SendGridAPIClient(apikey='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')
+    sg =sendgrid.SendGridAPIClient(apikey='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')
     from_email = Email("contact@internboards.com")
     to_email = Email(email)
     subject = "Sending with SendGrid is Fun"
@@ -67,6 +43,16 @@ def send(html, email):
         content = Content("text/html", "<html><p>Hello, world!</p><h1>h1</h1><h2>h2</h2></html>")
     mail = Mail(from_email, subject, to_email, content)
     response = sg.client.mail.send.post(request_body=mail.get())
+
+def forgotemail(url, email):
+    sg =sendgrid.SendGridAPIClient(apikey='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')
+    from_email = Email("contact@internboards.com")
+    to_email = Email(email)
+    subject = "Sending with SendGrid is Fun"
+    content = Content("text/html", "<html><p>goto: "+url+"</p></html>")
+    mail = Mail(from_email, subject, to_email, content)
+    response = sg.client.mail.send.post(request_body=mail.get())
+
 
 class DurationFilterBackend(filterr.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
@@ -142,7 +128,6 @@ class InternList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
     filter_backends = (UsernameFilterBackend,DeleteFilter)
 
-
 def loaderio(request):
     return HttpResponse('loaderio-31e01252bfb60d0ec0fbabd93985c4ca')
 
@@ -156,10 +141,6 @@ class CategoryList(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = BasicPagination
-
-    @cache_me('catagory')
-    def to_representation(self, instance):
-       return super(CategorySerializer, self).to_representation(instance)
 
 class GithubList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
@@ -225,11 +206,55 @@ class ProjectList(viewsets.ModelViewSet):
 
 @api_view(['GET'])
 @permission_classes((IsAuthenticated2,))
+def addCompanyUser(request):
+    if 'email' in request.POST:
+        email = request.POST['email']
+    else:
+        return Response({
+            'error':'no email'
+        })
+    if 'HR' in request.POST:
+        is_HR = request.POST['HR']
+    else:
+        is_HR=False
+    if 'HTTP_ACCESSTOKEN' in request.META and 'password' in request.POST:
+        token = request.META['HTTP_ACCESSTOKEN']
+        auth = list(AuthToken.objects.select_related('user').filter(token = token))
+        if len(auth) > 0:
+            companyuser = list(Company_User.objects.filter(user__user = auth.user))
+            if len(companyuser) > 0 :
+                companyuser = companyuser[0]
+                if companyuser.is_HR:
+                    user = User(email = email,username=email)
+                    user.save()
+                    cuser = Custom_User(user = user)
+                    cuser.save()
+                    cuuser = Company_User(company = companyuser.company,added_user = companyuser,is_HR = is_HR)
+                    cuuser.save()
+                    return Response('201')
+                else:
+                    return Response({
+                        'err':'not allow 403 for'
+                    })
+            else:
+                return Response({
+                    'err':'not allow 403 for'
+                })
+        else:
+            return Response({
+                'err':'not allow 403 for'
+            })
+    else:
+        return Response({
+            'err':'not allow 403 for'
+        })
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated2,))
 def submissionCompany(request):
     '''
     tester
     submissions = Submission.objects.select_related('intern').prefetch_related('intern__skills').prefetch_related('answer').prefetch_related('answer__question').select_related('intern__user').select_related('intern__user__address').select_related('intern__user__user').select_related('internship').prefetch_related('internship__skills').prefetch_related('intern__jobs').prefetch_related('intern__degrees').prefetch_related('intern__projects').filter(internship__id = 90)
-
     if 'id' in request.GET:
         counts = Submission.objects.all().values('status').annotate(total = Count('status'))
     else:
@@ -270,7 +295,6 @@ def submissionCompany(request):
         'interviewee':interviewee,
         'submissions':[],
     }
-
     for submission_data in submissions:
         submission = SubmissionCompanyReadSerializer(submission_data,many=False).data
         degree = DegreeSerializer(submission_data.intern.degrees,many=True).data
@@ -285,8 +309,16 @@ def submissionCompany(request):
             'questions':questions,
         })
     return JsonResponse(res)
-
     '''
+    var = request.GET.copy()
+    if 'page' in request.GET:
+        page = var.pop('page')[0]
+    else:
+        page = 1
+    if 'limit' in request.GET:
+        limit = var.pop('limit')[0]
+    else:
+        limit = 10
     try:
         status = request.GET['status']
     except:
@@ -326,8 +358,10 @@ def submissionCompany(request):
                 submission = submissions.filter(id=id)
                 break
             nextl = (str(submission.id) == str(id))
+    else:
+        nextl = True
     if nextl == True:
-        nextl =False
+        nextl =None
     for count in counts:
         if count['status'] == 4:
             hired = count['total']
@@ -348,7 +382,7 @@ def submissionCompany(request):
         'interviewee':interviewee,
         'submissions':[],
     }
-
+    submissions = submissions[(int(page) - 1)*int(limit):int(page)*int(limit)]
     for submission_data in submissions:
         submission = SubmissionCompanyReadSerializer(submission_data,many=False).data
         degree = DegreeSerializer(submission_data.intern.degrees,many=True).data
@@ -411,16 +445,61 @@ def updateInternship(request,id):
     intern = InternshipReadSerializer(internship[0], many=False).data
     return JsonResponse(intern)
 
-from django.core import serializers
+@api_view(['POST'])
+def passChange(request,code = None):
+    if 'HTTP_ACCESSTOKEN' in request.META and 'password' in request.POST:
+        token = request.META['HTTP_ACCESSTOKEN']
+        auth = list(AuthToken.objects.select_related('user').filter(token = token))
+        if len(auth) > 0 :
+            user = auth.user
+            user.set_password(request.POST['password'])
+            user.save()
+            return Response({
+                'done':'200'
+            })
+        else:
+            return Response({
+                'err':'invalid token'
+            })
 
+@api_view(['GET','POST'])
+def forgot(request,code = None):
+    if not code:
+        email = request.POST['email']
+        user = list(Custom_User.objects.filter(user__email = email))
+        if len(user) > 0:
+            user = user[0]
+            fpass = ForgotPassword(user = user)
+            fpass.save()
+            code = fpass.code
+            url = "api.internboards.com/forgot_check/" + code +"/"
+            forgotemail(url,email)
+            return Response('done')
+        return Response('not a user')
+    else:
+        fpass = list(ForgotPassword.objects.select_related('user').select_related('user__user').filter(code = code))
+        if len(fpass) > 0 :
+            email = fpass[0].user.user.email
+            auth = AuthToken(user = fpass[0].user.user)
+            auth.save()
+            token = auth
+            return Response({
+                        'token':token.token,
+                        'refreshtoken':token.refresh_token,
+                        'expires':token.expires,
+                        'user':email
+                    })
+        else:
+            return Response("error")
 @api_view(['GET'])
 def resume(request):
+    '''
     intern = Intern.objects.select_related('user').select_related('user__user').select_related('user__address').get(id=6)
     projects_data = Project.objects.filter(intern = intern)#.values_list('created_at','updated_at','name','description','location','start','end','description','intern').
     jobs_data = Job.objects.filter(intern = intern)#.values_list('created_at','updated_at','position','organiztion','location','start','end','description','intern').annotate(name=Value('xxx', output_field=models.CharField()))
     degrees_data = Degree.objects.filter(intern = intern)
-    github_data = Github.objects.filter(intern = intern)
-    if github_data.exists():
+    github_data = list(Github.objects.filter(intern = intern))
+    if list(github_data) > 0 :
         github = GithubSerializer(github_data,many=False).data
     else:
         github = {}
@@ -439,27 +518,27 @@ def resume(request):
     if 'HTTP_ACCESSTOKEN' in request.META:
         token = request.META['HTTP_ACCESSTOKEN']
         user = AuthToken.objects.select_related('user').get(token = token).user
-        intern = Intern.objects.filter(user__user = user)
-        if intern.exists():
+        intern = list(Intern.objects.filter(user__user = user))
+        if len(intern) > 0:
             intern = intern
         elif 'intern' in request.GET:
-            company_user = Company_User.objects.filter(user__user = user)
-            if company_user.exists():
-                intern = Intern.objects.filter(id = request.GET['intern'])
-                if intern.exists():
+            company_user = list(Company_User.objects.filter(user__user = user))
+            if len(company_user) > 0:
+                intern = list(Intern.objects.filter(id = request.GET['intern']))
+                if len(intern) > 0:
                     if not Submission.objects.filter(intern = intern[0],internship__company = company_user[0].company).exists():
                         return Response({'err':'intern has not applied'})
             else:
                 return Response({'err':'invalid user'})
         else:
             return Response({'err':'invalid request'})
-        if intern.exists():
+        if len(intern) > 0:
             intern = list(intern)[0]
             projects_data = Project.objects.filter(intern = intern)
             jobs_data = Job.objects.filter(intern = intern)
             degrees_data = Degree.objects.filter(intern = intern)
-            github_data = Github.objects.filter(intern = intern)
-            if github_data.exists():
+            github_data = list(Github.objects.filter(intern = intern))
+            if list(github_data) > 0:
                 github = GithubSerializer(github_data,many=False).data
             else:
                 github = {}
@@ -478,7 +557,6 @@ def resume(request):
             return Response({'err':'invalid intern'})
     else:
         return Response({'err':'no token'})
-    '''
 
 class InternshipReadList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
@@ -509,14 +587,14 @@ class InternshipReadList(viewsets.ModelViewSet):
             limit = var.pop('limit')[0]
         else:
             limit = 10
-        cache.delete(self.__class__.__name__ + page + limit)
-        if cache.get(self.__class__.__name__ + page + limit) is None:
+        #cache.delete(self.__class__.__name__ + str(page) + str(limit))
+        if cache.get(self.__class__.__name__ + str(page) + str(limit)) is None:
             instance = self.filter_queryset(self.get_queryset())[(int(page) - 1)*int(limit):int(page)*int(limit)]
             serializer =self.serializer_class(instance,many=True)
             data = serializer.data
-            cache.set(self.__class__.__name__ + page + limit,data , 3600*24)
+            cache.set(self.__class__.__name__ + str(page) + str(limit),data , 3600*24)
         else:
-            data = cache.get(self.__class__.__name__ + page + limit)
+            data = cache.get(self.__class__.__name__ + str(page) + str(limit))
         # here you can manipulate your data response
         return Response({
                 "result":data

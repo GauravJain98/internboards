@@ -11,6 +11,8 @@ def random_n(n):
     range_end = (10**n)-1
     return randint(range_start, range_end)
 
+class ForgetPassword()
+
 class Address(models.Model):
     archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -76,26 +78,6 @@ class Custom_User(models.Model):
         self.archived = True
         super().save()
 
-class ForgotPassword(models.Model):
-    archived = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    user = models.ForeignKey (
-        Custom_User,
-        on_delete=models.PROTECT,
-    )
-    code = models.CharField(max_length = 64,unique = True,null=True, default= "")
-    def delete(self):
-        self.archived = True
-        super().save()
-
-    def save(self, *args, **kwargs):
-        if self.code == "":
-            while True:
-                self.code = random_string()[0:64]
-                if not ForgotPassword.objects.filter(code = self.code).exists():
-                    break
-        super().save(*args, **kwargs)
 #Intern
 ##
 class Intern(models.Model):
@@ -235,6 +217,8 @@ def random_string():
         rnd = str(uuid4().hex)
     return rnd
 
+
+
 ##
 class Company(models.Model):
     archived = models.BooleanField(default=False)
@@ -283,16 +267,15 @@ class Company_User(models.Model):
         null = True,
         blank = True,
     )
-    share = models.CharField(max_length=4,blank=False, default="")
+    share = models.CharField(max_length=4,blank=False, default="1000")
     class Meta:
         verbose_name = 'Company User'
         verbose_name_plural = 'Company Users'
     def __str__(self):
         return str(self.id)
     def save(self, *args, **kwargs):
-        if self.share == "" and self.is_HR:
-            self.share = random_n(4)
-            self.user.save()
+        self.share = random_n(4)
+        self.user.save()
         super().save(*args, **kwargs)
 
     def delete(self):
@@ -390,6 +373,7 @@ class Internship(models.Model):
         return str(self.id)
 
 STATUS_TYPE = (
+    ('-1','Position Filled'),
     ('0','Rejected'),
     ('1','Review Period'),
     ('2','Shortlisted'),
