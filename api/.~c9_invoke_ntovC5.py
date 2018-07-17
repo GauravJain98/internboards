@@ -1,9 +1,6 @@
-from django.db import connection
-from django.shortcuts import get_object_or_404
-from django.db.models import Count,Value
-from django.views.decorators.cache import cache_page
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.contrib import admin
+from django.views.decorators.csrf import csrf_exempt
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import api_view,permission_classes
 from django_filters import rest_framework as filters
@@ -11,6 +8,9 @@ from rest_framework.decorators import action
 from rest_framework import viewsets, permissions, status, generics
 from rest_framework import filters as rffilter
 import json
+from django.shortcuts import get_object_or_404
+from django.db.models import Count,Value
+from django.views.decorators.cache import cache_page
 # refactor this
 from drf_multiple_model.views import ObjectMultipleModelAPIView
 from rest_framework.response import Response
@@ -366,8 +366,7 @@ def submissionCompany(request):
     else:
         nextl = True
     if nextl == True:
-        nextl =request.get_host()
-        print(nextl)
+        nextl =None
     for count in counts:
         if count['status'] == 4:
             hired = count['total']
@@ -497,15 +496,15 @@ def forgot(request,code = None):
                     })
         else:
             return Response("error")
-
 @api_view(['GET'])
 def resume(request):
+    '''
     intern = Intern.objects.select_related('user').select_related('user__user').select_related('user__address').get(id=6)
     projects_data = Project.objects.filter(intern = intern)#.values_list('created_at','updated_at','name','description','location','start','end','description','intern').
     jobs_data = Job.objects.filter(intern = intern)#.values_list('created_at','updated_at','position','organiztion','location','start','end','description','intern').annotate(name=Value('xxx', output_field=models.CharField()))
     degrees_data = Degree.objects.filter(intern = intern)
     github_data = list(Github.objects.filter(intern = intern))
-    if len(github_data) > 0 :
+    if list(github_data) > 0 :
         github = GithubSerializer(github_data,many=False).data
     else:
         github = {}
@@ -513,7 +512,7 @@ def resume(request):
     degrees = DegreeSerializer(degrees_data, many=True).data
     jobs = JobSerializer(jobs_data, many=True).data
     intern = InternSerializer(intern, many=False).data
-    return Response({
+    return JsonResponse({
         'projects':projects,
         'jobs':jobs,
         'intern':intern,
@@ -563,7 +562,7 @@ def resume(request):
             return Response({'err':'invalid intern'})
     else:
         return Response({'err':'no token'})
-    '''
+
 class InternshipReadList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
     serializer_class = InternshipReadSerializer

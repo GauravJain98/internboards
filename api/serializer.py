@@ -393,10 +393,8 @@ class InternshipReadSerializer(serializers.ModelSerializer):
         fields = ['id','category','company','skills','company_user','applied','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend','location','stipend_rate','code']
 
     def get_applied(self, obj):
-        '''
-        if self.context['request'].META['PATH_INFO'] == '/submission/intern/':
+        if 'request' in self.context and self.context['request'].META['PATH_INFO'] == '/submission/intern/':
             return None
-        '''
         return obj.submission.count() == 0
 
     def create(self, validated_data):
