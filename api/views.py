@@ -316,6 +316,7 @@ def submissionCompany(request):
     return JsonResponse(res)
     '''
     var = request.GET.copy()
+    sub = None
     if 'page' in request.GET:
         page = var.pop('page')[0]
     else:
@@ -328,11 +329,18 @@ def submissionCompany(request):
         status = request.GET['status']
     except:
         if 'id' in request.GET:
-            id = request.GET['id']
+            id = int(request.GET['id'])
+            print('id:'+str(id))
         else:
             status = 0
+    if 'internship' in request.GET:
+        internship = request.GET['internship']
+    else:
+        return Response({
+            'status':"400 no internship"
+        })
     if 'id' in request.GET:
-        internship = Internship.objects.select_related('company').get(id_code = "906559")
+        internship = Internship.objects.select_related('company').get(id_code = internship)
         cuser = Company_User.objects.select_related('company').filter(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user)
         if cuser.count() == 0:
             return Response({
@@ -346,6 +354,7 @@ def submissionCompany(request):
     else:
         submissions = Submission.objects.select_related('intern').prefetch_related('intern__skills').prefetch_related('answer').prefetch_related('answer__question').select_related('intern__user').select_related('intern__user__address').select_related('intern__user__user').select_related('internship').prefetch_related('internship__skills').prefetch_related('intern__jobs').prefetch_related('intern__degrees').prefetch_related('intern__projects').filter(internship__company = Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(status=status).filter(internship__id_code = request.GET['internship'])
     if 'id' in request.GET:
+        sub = submissions.filter(id=id)
         counts = Submission.objects.all().values('status').annotate(total = Count('status'))
     else:
         counts = Submission.objects.filter(internship__company =Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(internship__id_code = request.GET['internship']).values('status').annotate(total = Count('status'))
@@ -355,19 +364,31 @@ def submissionCompany(request):
     interviewee = 0
     rejected = 0
     nextl = False
+    index = None
     if 'id' in request.GET:
+        index = 0
         for submission in submissions:
-            if nextl:
+            if nextl==True:
                 nextl = submission.id
                 print(nextl)
-                submission = submissions.filter(id=id)
                 break
+            else:
+                index = index + 1
             nextl = (str(submission.id) == str(id))
     else:
         nextl = True
-    if nextl == True:
-        nextl =request.get_host()
+    if index == 0 :
+        index = None
+    if len(submissions) > int(page)*int(limit) and nextl == True:
+        nextl =request.get_host() + '/submission/company/?limit'+str(limit)+'&page='+str(int(page)+1)+'&status='+str(status)+'$internship='+str(internship)
         print(nextl)
+    elif nextl == True:
+        nextl = None
+    if len(submissions) < (int(page)-1)*int(limit):
+        return Response({
+            'status':'404',
+            'len':len(submissions)
+        })
     for count in counts:
         if count['status'] == 4:
             hired = count['total']
@@ -381,6 +402,7 @@ def submissionCompany(request):
             rejected = count['total']
     res = {
         'next':nextl,
+        'index':index,
         'hired':hired,
         'shortlisted':shortlisted,
         'review_period':review_period,
@@ -388,8 +410,28 @@ def submissionCompany(request):
         'interviewee':interviewee,
         'submissions':[],
     }
-    submissions = submissions[(int(page) - 1)*int(limit):int(page)*int(limit)]
-    for submission_data in submissions:
+    print(sub)
+    if sub is None:
+        for submission_data in submissions:
+            submission = SubmissionCompanyReadSerializer(submission_data,many=False).data
+            degree = DegreeSerializer(submission_data.intern.degrees,many=True).data
+            job = JobSerializer(submission_data.intern.jobs,many=True).data
+            project = ProjectSerializer(submission_data.intern.projects,many=True).data
+            questions = AnswerReadSerializer(submission_data.answer,many=True).data
+            res['submissions'].append({
+                'submission':submission,
+                'projects':project,
+                'jobs':job,
+                'degrees':degree,
+                'questions':questions,
+            })
+        return JsonResponse(res)
+    else:
+        if not len(sub) > 0:
+            return Response({
+                'status':"404"
+            })
+        submission_data = sub[0]
         submission = SubmissionCompanyReadSerializer(submission_data,many=False).data
         degree = DegreeSerializer(submission_data.intern.degrees,many=True).data
         job = JobSerializer(submission_data.intern.jobs,many=True).data
@@ -402,7 +444,7 @@ def submissionCompany(request):
             'degrees':degree,
             'questions':questions,
         })
-    return JsonResponse(res)
+        return JsonResponse(res)
 
 @api_view(['PATCH'])
 def updateInternship(request,id):

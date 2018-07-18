@@ -6,7 +6,6 @@ from .models import AuthToken
 
 class IsAuthenticated2(permissions.BasePermission):
     def has_permission(self, request, view):
-        return True
         if 'HTTP_ACCESSTOKEN' in request.META:
             token = AuthToken.objects.filter(token = request.META['HTTP_ACCESSTOKEN'],revoked = False)
             if token.exists():
@@ -18,7 +17,6 @@ class IsAuthenticated2(permissions.BasePermission):
                 else:
                     return True
         return False
-
 
 '''
     def has_object_permission(self, request, view, obj):

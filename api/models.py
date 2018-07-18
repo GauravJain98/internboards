@@ -23,7 +23,10 @@ class Address(models.Model):
 
     def delete(self):
         self.archived = True
-        super().save()
+        super().save
+
+    class Meta:
+        ordering = ['-updated_at']
 
 class College(models.Model):
     archived = models.BooleanField(default=False)
@@ -39,6 +42,9 @@ class College(models.Model):
     def delete(self):
         self.archived = True
         super().save()
+
+    class Meta:
+        ordering = ['-updated_at']
 
 ##
 class Skill(models.Model):
@@ -56,6 +62,9 @@ class Skill(models.Model):
     def delete(self):
         self.archived = True
         super().save()
+
+    class Meta:
+        ordering = ['-updated_at']
 ##
 class Custom_User(models.Model):
     archived = models.BooleanField(default=False)
@@ -75,6 +84,9 @@ class Custom_User(models.Model):
     def delete(self):
         self.archived = True
         super().save()
+
+    class Meta:
+        ordering = ['-updated_at']
 
 class ForgotPassword(models.Model):
     archived = models.BooleanField(default=False)
@@ -96,6 +108,9 @@ class ForgotPassword(models.Model):
                 if not ForgotPassword.objects.filter(code = self.code).exists():
                     break
         super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ['-updated_at']
 #Intern
 ##
 class Intern(models.Model):
@@ -113,6 +128,9 @@ class Intern(models.Model):
     def delete(self):
         self.archived = True
         super().save()
+
+    class Meta:
+        ordering = ['-updated_at']
 ##
 class Github(models.Model):
     archived = models.BooleanField(default=False)
@@ -141,6 +159,9 @@ class Github(models.Model):
     def delete(self):
         self.archived = True
         super().save()
+
+    class Meta:
+        ordering = ['-updated_at']
 ##
 class Degree(models.Model):
     archived = models.BooleanField(default=False)
@@ -170,6 +191,9 @@ class Degree(models.Model):
     def delete(self):
         self.archived = True
         super().save()
+
+    class Meta:
+        ordering = ['-updated_at']
 ##
 class Job(models.Model):
     archived = models.BooleanField(default=False)
@@ -203,6 +227,8 @@ class Job(models.Model):
         self.archived = True
         super().save()
 
+    class Meta:
+        ordering = ['-updated_at']
 ##
 class Project(models.Model):
     archived = models.BooleanField(default=False)
@@ -228,6 +254,8 @@ class Project(models.Model):
         self.archived = True
         super().save()
 
+    class Meta:
+        ordering = ['-updated_at']
 #MainApp
 def random_string():
     rnd = str(uuid4().hex)
@@ -257,6 +285,9 @@ class Company(models.Model):
     def delete(self):
         self.archived = True
         super().save()
+
+    class Meta:
+        ordering = ['-updated_at']
 ##
 class Company_User(models.Model):
     archived = models.BooleanField(default=False)
@@ -284,11 +315,15 @@ class Company_User(models.Model):
         blank = True,
     )
     share = models.CharField(max_length=4,blank=False, default="")
+
     class Meta:
         verbose_name = 'Company User'
         verbose_name_plural = 'Company Users'
+        ordering = ['-updated_at']
+
     def __str__(self):
         return str(self.id)
+
     def save(self, *args, **kwargs):
         if self.share == "" and self.is_HR:
             self.share = random_n(4)
@@ -323,6 +358,10 @@ class Category(models.Model):
     def delete(self):
         self.archived = True
         super().save()
+
+    class Meta:
+        ordering = ['-updated_at']
+
 ##
 STATUS_INTERN_TYPE = (
     ('0','Closed'),
@@ -386,6 +425,9 @@ class Internship(models.Model):
         self.archived = True
         super().save()
 
+    class Meta:
+        ordering = ['-updated_at']
+
     def __str__(self):
         return str(self.id)
 
@@ -417,6 +459,10 @@ class Submission(models.Model):
     selected = models.BooleanField(default = 'False')
     def __str__(self):
         return str(self.id)
+
+    class Meta:
+        ordering = ['-updated_at']
+
     def save(self, *args, **kwargs):
         self.internship.save()
         super().save(*args, **kwargs)
@@ -441,6 +487,9 @@ class Question(models.Model):
     )
     def __str__(self):
         return str(self.question)
+
+    class Meta:
+        ordering = ['-updated_at']
 
     def delete(self):
         self.archived = True
@@ -469,6 +518,9 @@ class Answer(models.Model):
         self.archived = True
         super().save()
 
+    class Meta:
+        ordering = ['-updated_at']
+
 #CustomAdmin
 ##
 class SiteAdmin(models.Model):
@@ -489,3 +541,6 @@ class SiteAdmin(models.Model):
     def delete(self):
         self.archived = True
         super().save()
+
+    class Meta:
+        ordering = ['-updated_at']

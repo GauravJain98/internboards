@@ -28,7 +28,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-INTERNAL_IPS = ['127.0.0.1','0.0.0.0','internboards.com']
+
+INTERNAL_IPS = ['13.250.54.134','http://internboards.com/']
 
 CORS_ALLOW_HEADERS = (
     'accesstoken',
