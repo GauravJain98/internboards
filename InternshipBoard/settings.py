@@ -28,8 +28,14 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+def call(self):
+    return True
 
-INTERNAL_IPS = ['13.250.54.134','http://internboards.com/']
+
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': call,
+}
+#INTERNAL_IPS = ['13.250.54.134','http://api.internboards.com/']
 
 CORS_ALLOW_HEADERS = (
     'accesstoken',
@@ -52,7 +58,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'debug_toolbar',
-    'pympler'
+    'django_mysql'
 ]
 
 
@@ -85,7 +91,6 @@ DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.signals.SignalsPanel',
     'debug_toolbar.panels.logging.LoggingPanel',
     'debug_toolbar.panels.redirects.RedirectsPanel',
-    'pympler.panels.MemoryPanel',
 ]
 
 ROOT_URLCONF = 'InternshipBoard.urls'
@@ -124,6 +129,7 @@ DATABASES = {
         'PORT':'3306',
     }
 }
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
@@ -155,7 +161,6 @@ REST_FRAMEWORK = {
         'user': '1000/second'
     }
 }
-
 '''
 LOGGING = {
     'version': 1,
@@ -176,7 +181,6 @@ LOGGING = {
     },
 }
 '''
-
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
 

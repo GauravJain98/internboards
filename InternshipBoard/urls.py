@@ -58,6 +58,9 @@ urlpatterns = [
     url(r'^internshipUpdate/(?P<id>[-\w]+)/', views.updateInternship),
 #    path('update/', views.update),
     path('resume/', views.resume),
+#    path('internship/read/', views.InternshipReadList.as_view()),
+    path('sub/', views.sub),
+    path('test/', views.tester),
     path('passchange/', views.passChange),
     path('forgot_check/<code>/', views.forgot),
     path('forgot/', views.forgot),
@@ -68,5 +71,5 @@ urlpatterns = [
 if settings.DEBUG:
     import debug_toolbar
     urlpatterns = [
-        url(r'^debug/', include(debug_toolbar.urls)),
+        url(r'^__debug__/', include(debug_toolbar.urls)),
     ] + urlpatterns

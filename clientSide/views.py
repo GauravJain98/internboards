@@ -6,7 +6,9 @@ from rest_framework.decorators import api_view
 from django.contrib.auth.models import User
 from oauth.models import AuthToken, Client
 import json
+from .models import *
 from api.models import Intern,Custom_User
+from django.http import JsonResponse
 from rest_framework.response import Response
 
 @api_view(['GET'])
@@ -102,3 +104,34 @@ def githubRedirect(request):
     except:
         internurl = 'http://internboards.com/login/studentgiri?'
         return redirect(internurl+ urlencode({'access_token':'error'}))
+
+
+def tester(request):
+    datwa = testY.objects.create(url="123",data = {'id': '123','message': 'Loving #django and #mysql','coords': [34.4, 56.2]})
+    #     'degrees':[{
+    #       'id':'1'
+    #     },{
+    #       'id':'1'
+    #     },{
+    #       'id':'2'
+    #     }]
+    # ,
+    # 'projects':[{
+    #       'id':'1'
+    #     },{
+    #       'id':'1'
+    #     },{
+    #       'id':'2'
+    #     }]
+    # ,
+    # 'jobs':[{
+    #       'id':'1'
+    #     },{
+    #       'id':'1'
+    #     },{
+    #       'id':'2'
+    #     }]
+    # })
+
+    datwa.save()
+    return JsonResponse(datwa.data)

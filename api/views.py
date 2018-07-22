@@ -4,13 +4,15 @@ from django.db.models import Count,Value
 from django.views.decorators.cache import cache_page
 from django.contrib.auth.models import User
 from django.contrib import admin
+import django_filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import api_view,permission_classes
 from django_filters import rest_framework as filters
 from rest_framework.decorators import action
-from rest_framework import viewsets, permissions, status, generics
+from rest_framework import viewsets, permissions, status, generics, views
 from rest_framework import filters as rffilter
 import json
+from django.views.decorators.csrf import csrf_exempt
 # refactor this
 from drf_multiple_model.views import ObjectMultipleModelAPIView
 from rest_framework.response import Response
@@ -18,7 +20,6 @@ from rest_framework.views import APIView
 from oauth.permissions import IsAuthenticated2
 from django.utils.timezone import now
 from rest_framework import filters as filterr
-from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, TokenHasScope
 from .serializer import *
 import sendgrid
 import os
@@ -52,7 +53,6 @@ def forgotemail(url, email):
     content = Content("text/html", "<html><p>goto: "+url+"</p></html>")
     mail = Mail(from_email, subject, to_email, content)
     response = sg.client.mail.send.post(request_body=mail.get())
-
 
 class DurationFilterBackend(filterr.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
@@ -118,12 +118,11 @@ class InternAddList(viewsets.ModelViewSet):
 
 class Company_UserAddList(viewsets.ModelViewSet):
     queryset = Company_User.objects.all()
-    serializer_class = Company_UserSerializer
-    http_method_names = ['post', 'options']
+    serializer_class = Company_UserAddSerializer
 
-class InternList(viewsets.ModelViewSet):
+class InternList(viewsets.GenericViewSet):
 #    permission_classes  = (IsAuthenticated2,)
-    queryset = Intern.objects.select_related('user').select_related('user__user').select_related('user__address').prefetch_related('skills').all()
+    queryset = Intern.objects.select_related('user','user__user','user__address','sub').prefetch_related('skills').all()
     serializer_class = InternSerializer
     pagination_class = BasicPagination
     filter_backends = (UsernameFilterBackend,DeleteFilter)
@@ -131,13 +130,13 @@ class InternList(viewsets.ModelViewSet):
 def loaderio(request):
     return HttpResponse('loaderio-31e01252bfb60d0ec0fbabd93985c4ca')
 
-class Company_UserList(viewsets.ModelViewSet):
+class Company_UserList(viewsets.GenericViewSet):
     queryset = Company_User.objects.select_related('user').select_related('user__address').select_related('user__user').all()
     serializer_class = Company_UserSerializer
     pagination_class = BasicPagination
     filter_backends = (UsernameFilterBackend,DeleteFilter)
 
-class CategoryList(viewsets.ModelViewSet):
+class CategoryList(viewsets.GenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = BasicPagination
@@ -165,7 +164,7 @@ class SiteAdminList(viewsets.ModelViewSet):
     serializer_class = SiteAdminSerializer
     pagination_class = BasicPagination
 
-class SkillList(viewsets.ModelViewSet):
+class SkillList(viewsets.GenericViewSet):
     permission_classes  = (IsAuthenticated2,)
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
@@ -266,8 +265,8 @@ def submissionCompany(request):
         counts = Submission.objects.filter(internship__company =Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(internship__id_code = request.GET['internship']).values('status').annotate(total = Count('status'))
     hired = 0
     shortlisted = 0
-    review_period = 0
-    interviewee = 0
+    pending = 0
+    interviewed = 0
     rejected = 0
     nextl = False
     if 'id' in request.GET:
@@ -284,20 +283,20 @@ def submissionCompany(request):
         if count['status'] == 4:
             hired = count['total']
         if count['status'] == 3:
-            interviewee = count['total']
+            interviewed = count['total']
         if count['status'] == 2:
             shortlisted = count['total']
         if count['status'] == 1:
-            review_period = count['total']
+            pending = count['total']
         if count['status'] == 0:
             rejected = count['total']
     res = {
         'next':nextl,
         'hired':hired,
         'shortlisted':shortlisted,
-        'review_period':review_period,
+        'pending':pending,
         'rejected':rejected,
-        'interviewee':interviewee,
+        'interviewed':interviewed,
         'submissions':[],
     }
     for submission_data in submissions:
@@ -317,11 +316,11 @@ def submissionCompany(request):
     '''
     var = request.GET.copy()
     sub = None
-    if 'page' in request.GET:
+    if 'page' in request.GET and int(request.GET['page'])> 0:
         page = var.pop('page')[0]
     else:
         page = 1
-    if 'limit' in request.GET:
+    if 'limit' in request.GET and int(request.GET['limit'])> 0 and int(request.GET['limit'])< 20:
         limit = var.pop('limit')[0]
     else:
         limit = 10
@@ -360,8 +359,8 @@ def submissionCompany(request):
         counts = Submission.objects.filter(internship__company =Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(internship__id_code = request.GET['internship']).values('status').annotate(total = Count('status'))
     hired = 0
     shortlisted = 0
-    review_period = 0
-    interviewee = 0
+    pending = 0
+    interviewed = 0
     rejected = 0
     nextl = False
     index = None
@@ -389,15 +388,16 @@ def submissionCompany(request):
             'status':'404',
             'len':len(submissions)
         })
+    submissions = submissions[(int(page) -1)*int(limit):int(page)*int(limit)]
     for count in counts:
         if count['status'] == 4:
             hired = count['total']
         if count['status'] == 3:
-            interviewee = count['total']
+            interviewed = count['total']
         if count['status'] == 2:
             shortlisted = count['total']
         if count['status'] == 1:
-            review_period = count['total']
+            pending = count['total']
         if count['status'] == 0:
             rejected = count['total']
     res = {
@@ -405,9 +405,9 @@ def submissionCompany(request):
         'index':index,
         'hired':hired,
         'shortlisted':shortlisted,
-        'review_period':review_period,
+        'pending':pending,
         'rejected':rejected,
-        'interviewee':interviewee,
+        'interviewed':interviewed,
         'submissions':[],
     }
     print(sub)
@@ -447,6 +447,7 @@ def submissionCompany(request):
         return JsonResponse(res)
 
 @api_view(['PATCH'])
+@csrf_exempt
 def updateInternship(request,id):
     validate_data = {}
     body = json.loads(request.body.decode('utf-8'))
@@ -542,26 +543,31 @@ def forgot(request,code = None):
 
 @api_view(['GET'])
 def resume(request):
-    intern = Intern.objects.select_related('user').select_related('user__user').select_related('user__address').get(id=6)
-    projects_data = Project.objects.filter(intern = intern)#.values_list('created_at','updated_at','name','description','location','start','end','description','intern').
-    jobs_data = Job.objects.filter(intern = intern)#.values_list('created_at','updated_at','position','organiztion','location','start','end','description','intern').annotate(name=Value('xxx', output_field=models.CharField()))
-    degrees_data = Degree.objects.filter(intern = intern)
-    github_data = list(Github.objects.filter(intern = intern))
-    if len(github_data) > 0 :
-        github = GithubSerializer(github_data,many=False).data
+    if cache.get(str('test') + 'resume') is None:
+        intern = Intern.objects.select_related('user').select_related('user__user').select_related('user__address').get(id=6)
+        projects_data = Project.objects.filter(intern = intern)#.values_list('created_at','updated_at','name','description','location','start','end','description','intern').
+        jobs_data = Job.objects.filter(intern = intern)#.values_list('created_at','updated_at','position','organiztion','location','start','end','description','intern').annotate(name=Value('xxx', output_field=models.CharField()))
+        degrees_data = Degree.objects.filter(intern = intern)
+        github_data = list(Github.objects.filter(intern = intern))
+        if len(github_data) > 0 :
+            github = GithubSerializer(github_data,many=False).data
+        else:
+            github = {}
+        projects = ProjectSerializer(projects_data, many=True).data
+        degrees = DegreeSerializer(degrees_data, many=True).data
+        jobs = JobSerializer(jobs_data, many=True).data
+        intern = InternSerializer(intern, many=False).data
+        data = {
+            'projects':projects,
+            'jobs':jobs,
+            'intern':intern,
+            'degrees':degrees,
+            'github':github
+        }
+        cache.set(str('test') + 'resume',data , 3600*24)
     else:
-        github = {}
-    projects = ProjectSerializer(projects_data, many=True).data
-    degrees = DegreeSerializer(degrees_data, many=True).data
-    jobs = JobSerializer(jobs_data, many=True).data
-    intern = InternSerializer(intern, many=False).data
-    return Response({
-        'projects':projects,
-        'jobs':jobs,
-        'intern':intern,
-        'degrees':degrees,
-        'github':github
-    })
+        data = cache.get(str('test') + 'resume')
+    return Response(data)
     '''
     if 'HTTP_ACCESSTOKEN' in request.META:
         token = request.META['HTTP_ACCESSTOKEN']
@@ -606,17 +612,33 @@ def resume(request):
     else:
         return Response({'err':'no token'})
     '''
-class InternshipReadList(viewsets.ModelViewSet):
+
+class InternshipFilter(django_filters.FilterSet):
+    class Meta:
+        model = Internship
+        fields = ('category','location','company','approved','skills','PPO','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
+
+@api_view(['GET'])
+def tester(request):
+    d = InternshipReadSerializer(Internship.objects.filter(**request.GET),many=True)
+    return Response(d.data)
+
+@api_view(['GET'])
+def sub(request):
+    sub = SubSerializer(Sub.objects.all(),many=True)
+    return Response(sub.data)
+
+class InternshipReadList(viewsets.GenericViewSet):
     pagination_class = BasicPagination
     serializer_class = InternshipReadSerializer
     filter_backends = (DjangoFilterBackend,filterr.SearchFilter,DeleteFilter,filterr.OrderingFilter,DurationFilterBackend,CodeIdFilterBackend,FullInternshipFilterBackend)
-    filter_fields = ('category','location','company','approved','skills','PPO','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
-    search_fields = ('category','stipend','location','responsibilities','skills__name')
+    filter_fields = ('category','location','company','approved','skills','available','PPO','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
+    search_fields = ('category__name','location','responsibilities','skills__name')
     ordering_fields = ('deadline', 'duration')
 
     def get_queryset(self):
         intern = getIntern(self.request)
-        queryset = Internship.objects.select_related('company').prefetch_related('submission').select_related('company_user').prefetch_related('skills').all()
+        queryset = Internship.objects.select_related('company','category','company_user').prefetch_related('available','submission','available','skills').all()
 
         if not intern or 'id' in self.request.GET:
             return queryset
@@ -626,27 +648,44 @@ class InternshipReadList(viewsets.ModelViewSet):
         return queryset
 
     def list(self, request, *args, **kwargs):
-        var = request.GET.copy()
-        if 'page' in request.GET:
-            page = var.pop('page')[0]
+        if 'page' in request.GET and int(request.GET['page']) < 0:
+            page = request.GET['page']
         else:
             page = 1
-        if 'limit' in request.GET:
-            limit = var.pop('limit')[0]
+        if 'limit' in request.GET and int(request.GET['limit']) < 10:
+            limit = request.GET['limit']
         else:
             limit = 10
-        #cache.delete(self.__class__.__name__ + str(page) + str(limit))
-        if cache.get(self.__class__.__name__ + str(page) + str(limit)) is None:
-            instance = self.filter_queryset(self.get_queryset())[(int(page) - 1)*int(limit):int(page)*int(limit)]
+        cache.delete(self.__class__.__name__ + str(page) + str(limit))
+        params = list(request.GET.keys())
+        params.sort()
+        name = ''
+        for param in params:
+            if not (name == 'page' or name == 'limit'):
+                if request.GET[param] == '':
+                    name = request.GET[param] + name
+                else:
+                    name = name + ' '
+        name = str(name)
+        name = ''
+        if cache.get(self.__class__.__name__ + str(page) + str(limit)+name) is None:
+            instance = self.filter_queryset(self.get_queryset())
+            nextl = len(instance) > (int(page) - 1)*int(limit)
+            instance = (instance)[(int(page) - 1)*int(limit):int(page)*int(limit)]
             serializer =self.serializer_class(instance,many=True)
             data = serializer.data
-            cache.set(self.__class__.__name__ + str(page) + str(limit),data , 3600*24)
+            res = {
+                'count':len(data),
+                'links': {
+                    'next': nextl,
+                    'previous': page > 1
+                },
+                'results': data
+            }
+            cache.set(self.__class__.__name__ + str(page) + str(limit)+name,res , 3600*24)
         else:
-            data = cache.get(self.__class__.__name__ + str(page) + str(limit))
-        # here you can manipulate your data response
-        return Response({
-                "result":data
-            })
+            res = cache.get(self.__class__.__name__ + str(page) + str(limit)+name)
+        return Response(res)
 
     def retrieve(self, request, pk=None):
         if cache.get(self.__class__.__name__ + pk) is None:
@@ -686,8 +725,8 @@ class InternshipSubReadList(viewsets.ModelViewSet):
         return queryset
 
 class InternshipList(viewsets.ModelViewSet):
-    permission_classes  = (IsAuthenticated2,)
-    queryset = Internship.objects.select_related('company').select_related('company_user').prefetch_related('skills').all()
+    #permission_classes  = (IsAuthenticated2,)
+    queryset = Internship.objects.select_related('company').select_related('company_user').prefetch_related('skills').prefetch_related('questions').all()[0:0]
     serializer_class = InternshipSerializer
 
 def update(request):
@@ -703,7 +742,7 @@ def send(request):
     sending_mail(subject, "email_template_name", context, from_email, to_email)
 '''
 class SubmissionList(viewsets.ModelViewSet):
-    permission_classes  = (IsAuthenticated2,)
+    #permission_classes  = (IsAuthenticated2,)
     queryset = Submission.objects.select_related('intern').select_related('internship').all()
     serializer_class = SubmissionSerializer
     pagination_class = BasicPagination

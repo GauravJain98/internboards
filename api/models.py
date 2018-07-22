@@ -33,7 +33,6 @@ class College(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=200,blank=False)
-    sub = models.CharField(max_length=200,blank=False)
     address = models.OneToOneField(
         Address,
         on_delete = models.PROTECT,
@@ -46,6 +45,15 @@ class College(models.Model):
     class Meta:
         ordering = ['-updated_at']
 
+
+class Sub(models.Model):
+    link = models.CharField(max_length= 20, blank= True,null=True)
+    college = models.OneToOneField(
+        College,
+        on_delete=models.CASCADE,
+        verbose_name = 'Sub',
+        related_name="sub"
+    )
 ##
 class Skill(models.Model):
     archived = models.BooleanField(default=False)
@@ -122,7 +130,12 @@ class Intern(models.Model):
         on_delete=models.CASCADE,
     )
     skills = models.ManyToManyField(Skill)
-    college = models.CharField(max_length=20,blank=True,null=True, default="")
+    sub = models.ForeignKey(
+        Sub,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
     hired = models.BooleanField(default=False)
 
     def delete(self):
@@ -275,10 +288,12 @@ class Company(models.Model):
     key = models.CharField(max_length=128 , default = random_string ,unique=True )
     address = models.ManyToManyField(Address)
     city = models.CharField(max_length = 100,default = "")
-    hiring = models.ManyToManyField(College , related_name='hiring')
+    hiring = models.ManyToManyField(Sub , related_name='hiring')
+
     class Meta:
         verbose_name = 'Company'
         verbose_name_plural = 'Companies'
+
     def __str__(self):
         return self.name + '(' + str(self.id) + ')'
 
@@ -314,7 +329,7 @@ class Company_User(models.Model):
         null = True,
         blank = True,
     )
-    share = models.CharField(max_length=4,blank=False, default="")
+    share = models.CharField(max_length=4,blank=True, default="")
 
     class Meta:
         verbose_name = 'Company User'
@@ -391,9 +406,14 @@ class Internship(models.Model):
     fixed= models.BooleanField(default = 'False')
     negotiable=models.BooleanField(default = 'False')
     performance_based=models.BooleanField(default = 'False')
-    category = models.CharField(max_length= 20,default = 'None')
+    category =models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        verbose_name = 'Category',
+        null=True
+    )
     deadline = models.DateField(auto_now=False, auto_now_add=False)
-    applications_end = models.DateField(auto_now=False, auto_now_add=False)
+    start = models.DateField(auto_now=False, auto_now_add=False)
     visibility = models.DateField(auto_now=False, auto_now_add=False)
     duration= models.IntegerField(default=0,null=True,blank=True)
     responsibilities = models.TextField(blank=False , default="")
@@ -401,7 +421,7 @@ class Internship(models.Model):
     location = models.CharField(max_length = 50,default = "New Delhi")
     code = models.CharField(max_length = 4,null=False,blank=True,default = "")
     id_code = models.CharField(max_length=20,null=False,blank=True)
-    available = models.ManyToManyField(College , related_name='internships')
+    available = models.ManyToManyField(Sub , related_name='internships',null=True,blank=True)
     locations = models.ManyToManyField(Address)
     skills = models.ManyToManyField(Skill)
     company = models.ForeignKey(
@@ -417,7 +437,7 @@ class Internship(models.Model):
     )
     def save(self, *args, **kwargs):
         if self.code == "":
-            self.visibility = self.applications_end + relativedelta(days=15)
+            self.visibility = self.deadline + relativedelta(days=15)
             self.code = random_n(4)
         super().save(*args, **kwargs)
 
@@ -448,7 +468,12 @@ class Submission(models.Model):
         Intern,
         on_delete=models.CASCADE,
     )
-    college = models.CharField(max_length= 20, blank= True,null=True)
+    sub = models.ForeignKey(
+        Sub,
+        on_delete=models.CASCADE,
+        related_name="submission",
+        null=True
+    )
     internship =  models.ForeignKey(
         Internship,
         on_delete=models.CASCADE,
@@ -484,6 +509,7 @@ class Question(models.Model):
         Internship,
         on_delete=models.CASCADE,
         verbose_name = 'Internship',
+        related_name = 'questions'
     )
     def __str__(self):
         return str(self.question)
@@ -510,6 +536,7 @@ class Answer(models.Model):
     question = models.ForeignKey(
         Question,
         on_delete=models.CASCADE,
+        related_name = 'answer'
     )
     def __str__(self):
         return self.answer_text

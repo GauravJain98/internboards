@@ -42,6 +42,11 @@ class AddressSerializer(serializers.ModelSerializer):
         model = Address
         fields = ('apartment','street','city','zip_code','country')
 
+class SubSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sub
+        fields = ('id','link')
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -73,16 +78,18 @@ class Custom_UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         user = UserSerializer.create(UserSerializer(), validated_data=user_data)
+        '''
         address_data = validated_data.pop('address')
         address = AddressSerializer.create(AddressSerializer(), validated_data=address_data)
-        custom_user, created = Custom_User.objects.update_or_create(user=user,address=address, **validated_data)
+        '''
+        custom_user, created = Custom_User.objects.update_or_create(user=user,**validated_data)
         return custom_user
 
 class CompanySerializer(serializers.ModelSerializer):
     hiring = serializers.SlugRelatedField(
         many=True,
-        slug_field='sub',
-        queryset=College.objects.all()
+        slug_field='link',
+        queryset=Sub.objects.all()
     )
     address = AddressSerializer(required = True,many=True)
 
@@ -114,14 +121,14 @@ class CompanyReadSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ('name',)
+        fields = ('id','name',)
 
 class CollegeSerializer(serializers.ModelSerializer):
     address = AddressSerializer(required = True)
 
     class Meta:
         model = College
-        fields = ('name','sub','location','address')
+        fields = ('name','address')
 
     def create(self,validated_data):
         address_data = validated_data.pop('address')
@@ -132,7 +139,7 @@ class CollegeSerializer(serializers.ModelSerializer):
 class Company_UserSerializer(serializers.ModelSerializer):
 
     user = Custom_UserSerializer(required=True)
-    added_user = serializers.PrimaryKeyRelatedField(many=False, queryset=User.objects.all())
+    added_user = serializers.PrimaryKeyRelatedField(many=False, queryset=User.objects.all(),required=False )
     company = CompanyReadSerializer(read_only=True)
     class Meta:
         model = Company_User
@@ -172,11 +179,10 @@ class Company_UserAddSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         added_user_data = validated_data.pop('added_user')
-        company_data = validated_data.pop('company')
 
         user = Custom_UserSerializer.create(Custom_UserSerializer(), validated_data=user_data)
 
-        company_user ,created = Company_User.objects.update_or_create(user = user ,company=company_data ,added_user = added_user_data, **validated_data)
+        company_user ,created = Company_User.objects.update_or_create(user = user ,added_user = added_user_data, **validated_data)
         return company_user
 
 class InternSerializer(serializers.ModelSerializer):
@@ -187,10 +193,11 @@ class InternSerializer(serializers.ModelSerializer):
         slug_field='name',
         queryset=Skill.objects.all()
     )
+    sub = SubSerializer(many=False)
 
     class Meta:
         model = Intern
-        fields = ['id', 'user', 'skills','college']
+        fields = ['id', 'user', 'skills','sub']
         read_only_fields = ('hired',)
 
     def create(self, validated_data):
@@ -214,10 +221,14 @@ class InternAddSerializer(serializers.ModelSerializer):
         queryset=Skill.objects.all()
     )
     token = serializers.SerializerMethodField()
-
+    sub = serializers.SlugRelatedField(
+        many=False,
+        slug_field='link',
+        queryset=Sub.objects.all()
+    )
     class Meta:
         model = Intern
-        fields = ['id', 'user', 'skills','college','token']
+        fields = ['id', 'user', 'skills','sub','token']
         read_only_fields = ('hired',)
 
     def get_token(self,obj):
@@ -348,6 +359,18 @@ class HiringSerializer(serializers.ModelSerializer):
 
         return intern
 '''
+class QuestionReadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Question
+        fields = ['id','question','placeholder']
+
+class SubSerializer(serializers.ModelSerializer):
+    college = CollegeSerializer(read_only=True)
+    class Meta:
+        model = Sub
+        fields = ['id','link','college']
+
 class InternshipSerializer(serializers.ModelSerializer):
 
     company = serializers.PrimaryKeyRelatedField(
@@ -360,20 +383,34 @@ class InternshipSerializer(serializers.ModelSerializer):
         slug_field='name',
         queryset=Skill.objects.all()
     )
-
+    hiring = serializers.SlugRelatedField(
+        many=True,
+        slug_field='link',
+        queryset=Sub.objects.all()
+    )
+    questions = QuestionReadSerializer(many=True)
+    category = serializers.SlugRelatedField(
+        many=False,
+        slug_field='name',
+        queryset=Category.objects.all()
+    )
     class Meta:
         model =  Internship
-        fields = ['id','category','company','skills','company_user','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend_rate','location']
+        fields = ['id','category','company','skills','start','company_user','questions','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend_rate','location']
 
     def create(self, validated_data):
         skills_data = validated_data.pop('skills')
+        hiring_data = validated_data.pop('hiring')
         company_data = validated_data.pop('company')
         company_user_data = validated_data.pop('company_user')
+        questions_data = validated_data.pop('questions')
         internship = Internship.objects.create(company_user = company_user_data ,company = company_data , **validated_data)
-
+        for question_data in questions_data:
+            questions = Question.objects.create(internship = internship,placeholder = question_data.placeholder,question=question_data.id)
         for skill in skills_data:
             internship.skills.add(skill)
-
+        for hire in hiring_data:
+            internship.hiring.add(hire)
         return internship
     def delete(self, validated_data):
         pass
@@ -387,10 +424,20 @@ class InternshipReadSerializer(serializers.ModelSerializer):
         slug_field='name',
         queryset=Skill.objects.all()
     )
+    available = serializers.SlugRelatedField(
+        many=True,
+        slug_field='link',
+        queryset=Sub.objects.all()
+    )
     applied = serializers.SerializerMethodField()
+    category = serializers.SlugRelatedField(
+        many=False,
+        slug_field='name',
+        queryset=Category.objects.all()
+    )
     class Meta:
         model =  Internship
-        fields = ['id','category','company','skills','company_user','applied','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend','location','stipend_rate','code']
+        fields = ['id','category','company','available','skills','company_user','applied','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend','location','stipend_rate','code']
 
     def get_applied(self, obj):
         if 'request' in self.context and self.context['request'].META['PATH_INFO'] == '/submission/intern/':
@@ -420,9 +467,14 @@ class FullInternshipReadSerializer(serializers.ModelSerializer):
         queryset=Skill.objects.all()
     )
     applied = serializers.SerializerMethodField()
+    category = serializers.SlugRelatedField(
+        many=False,
+        slug_field='name',
+        queryset=Category.objects.all()
+    )
     class Meta:
         model =  Internship
-        fields = ['id','category','company','skills','company_user','status','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend','location','stipend_rate','code','created_at']
+        fields = ['id','category','skills','company_user','company','skills','company_user','status','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend','location','stipend_rate','code','created_at']
 
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})
@@ -439,15 +491,18 @@ class FullInternshipReadSerializer(serializers.ModelSerializer):
 
 class InternshipReadSubSerializer(serializers.ModelSerializer):
 
-    #company = serializers.PrimaryKeyRelatedField(many=False, queryset=Company.objects.all())
-    #company_user =  serializers.PrimaryKeyRelatedField(many=False, queryset=Company_User.objects.all())
-    '''
+    company = serializers.PrimaryKeyRelatedField(many=False, queryset=Company.objects.all())
+    company_user =  serializers.PrimaryKeyRelatedField(many=False, queryset=Company_User.objects.all())
     skills = serializers.SlugRelatedField(
         many=True,
         slug_field='name',
         queryset=Skill.objects.all()
     )
-    '''
+    category = serializers.SlugRelatedField(
+        many=False,
+        slug_field='name',
+        queryset=Category.objects.all()
+    )
     visibility = serializers.SerializerMethodField()
     class Meta:
         model =  Internship
@@ -455,7 +510,7 @@ class InternshipReadSubSerializer(serializers.ModelSerializer):
         1,2,5,6,7
         'certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend',
         '''
-        fields = ['id','category','status','visibility','applications','approved','denied','allowed','deadline','duration','stipend','location','stipend_rate','code','created_at']
+        fields = ['id','category','skills','company_user','company','status','visibility','applications','approved','denied','allowed','deadline','duration','stipend','location','stipend_rate','code','created_at']
 
     def get_visibility(self, obj):
         return obj.visibility < now().date()
@@ -475,12 +530,17 @@ class InternshipReadSubSerializer(serializers.ModelSerializer):
 
 class FullInternshipReadSubSerializer(serializers.ModelSerializer):
 
-    #company = serializers.PrimaryKeyRelatedField(many=False, queryset=Company.objects.all())
-    #company_user =  serializers.PrimaryKeyRelatedField(many=False, queryset=Company_User.objects.all())
+    company = serializers.PrimaryKeyRelatedField(many=False, queryset=Company.objects.all())
+    company_user =  serializers.PrimaryKeyRelatedField(many=False, queryset=Company_User.objects.all())
     skills = serializers.SlugRelatedField(
         many=True,
         slug_field='name',
         queryset=Skill.objects.all()
+    )
+    category = serializers.SlugRelatedField(
+        many=False,
+        slug_field='name',
+        queryset=Category.objects.all()
     )
     visibility = serializers.SerializerMethodField()
     class Meta:
@@ -489,7 +549,7 @@ class FullInternshipReadSubSerializer(serializers.ModelSerializer):
         1,2,5,6,7
         'certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend',
         '''
-        fields = ['id','category','status','skills','company_user','visibility','applications','approved','denied','allowed','deadline','duration','responsibilities','stipend','location','stipend_rate','code']
+        fields = ['id','category','company','status','skills','company_user','visibility','applications','approved','denied','allowed','deadline','duration','responsibilities','stipend','location','stipend_rate','code']
 
     def get_visibility(self, obj):
         return obj.visibility < now().date()
@@ -583,11 +643,6 @@ class QuestionSerializer(serializers.ModelSerializer):
         model = Question
         fields = ['id', 'internship','question','placeholder']
 
-class QuestionReadSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Question
-        fields = ['id','question',]
 '''
 class AnswerSerializer(serializers.ModelSerializer):
 
