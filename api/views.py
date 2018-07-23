@@ -673,7 +673,7 @@ class InternshipReadList(generics.ListAPIView):
         name = str(name)
         name = ''
         if cache.get(self.__class__.__name__ + str(page) + str(limit)+name) is None:
-            print('setting cache')
+        #    print('setting cache')
             instance = self.filter_queryset(self.get_queryset())
             nextl = len(instance) > (int(page) - 1)*int(limit)
             instance = (instance)[(int(page) - 1)*int(limit):int(page)*int(limit)]

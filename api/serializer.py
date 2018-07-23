@@ -7,7 +7,6 @@ from oauth.models import AuthToken
 from django.utils.timezone import now
 from django.core.cache import cache
 
-
 def getUser(request):
     if 'HTTP_ACCESSTOKEN' in request.META:
         token = request.META['HTTP_ACCESSTOKEN']
