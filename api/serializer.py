@@ -421,7 +421,7 @@ class InternshipSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         skills_data = validated_data.pop('skills')
-        hiring_data = validated_data.pop('hiring')
+        hiring_data = validated_data.pop('available')
         company_data = validated_data.pop('company')
         company_user_data = validated_data.pop('company_user')
         questions_data = validated_data.pop('questions')
@@ -431,7 +431,7 @@ class InternshipSerializer(serializers.ModelSerializer):
         for skill in skills_data:
             internship.skills.add(skill)
         for hire in hiring_data:
-            internship.hiring.add(hire)
+            internship.available.add(hire)
         return internship
     def delete(self, validated_data):
         pass
@@ -458,7 +458,7 @@ class InternshipReadSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model =  Internship
-        fields = ['id','category','company','available','skills','company_user','applied','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend','location','stipend_rate','code']
+        fields = ['id','category','company','in_main','skills','available','company_user','applied','approved','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend','location','stipend_rate','code']
 
     def get_applied(self, obj):
         if 'request' in self.context and self.context['request'].META['PATH_INFO'] == '/submission/intern/':
@@ -495,7 +495,7 @@ class FullInternshipReadSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model =  Internship
-        fields = ['id','category','skills','company_user','company','skills','company_user','status','applications','selected','approved','denied','allowed','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend','location','stipend_rate','code','created_at']
+        fields = ['id','category','company','in_main','skills','available','company_user','applied','approved','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend','location','stipend_rate','code']
 
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})
