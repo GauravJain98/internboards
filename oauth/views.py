@@ -61,8 +61,9 @@ def token(request):
                     user = list(user)[0]
                 auth = authenticate(username=data['username'], password=data['password'])
                 if auth:
-                    if 'sub' in request.GET and user.sub.link != request.GET['sub']:
-                        return Response({'error':'Invalid Credentials'},status=status.HTTP_401_UNAUTHORIZED)
+                    if 'sub' in request.GET:
+                        if user.sub.link != request.GET['sub']:
+                            return Response({'error':'Invalid Credentials'},status=status.HTTP_401_UNAUTHORIZED)
                     token = AuthToken(client = list(client)[0],user = user.user.user,expires = expire)
                     token.save()
                     return Response({

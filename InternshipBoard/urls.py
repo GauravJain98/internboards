@@ -41,7 +41,7 @@ router.register(r'project', views.ProjectList)
 #router.register(r'hiring', views.HiringList)
 router.register(r'internship/read/company/full', views.FullInternshipSubReadList, base_name="Internship")
 router.register(r'internship/read/company', views.InternshipSubReadList, base_name="Internship")
-router.register(r'internship/read', views.InternshipReadList, base_name="Internship")
+#router.register(r'internship/read', views.InternshipReadList, base_name="Internship")
 router.register(r'internship', views.InternshipList)
 #router.register(r'internshipavaliable', views.InternshipAvaliableList)
 
@@ -58,7 +58,7 @@ urlpatterns = [
     url(r'^internshipUpdate/(?P<id>[-\w]+)/', views.updateInternship),
 #    path('update/', views.update),
     path('resume/', views.resume),
-#    path('internship/read/', views.InternshipReadList.as_view()),
+    path('internship/read/', views.InternshipReadList.as_view()),
     path('sub/', views.sub),
     path('test/', views.tester),
     path('passchange/', views.passChange),

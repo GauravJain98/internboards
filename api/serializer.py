@@ -11,31 +11,54 @@ from django.core.cache import cache
 def getUser(request):
     if 'HTTP_ACCESSTOKEN' in request.META:
         token = request.META['HTTP_ACCESSTOKEN']
-        return AuthToken.objects.select_related('user').get(token = token).user
+        if cache.get(str(token) + 'user') is None:
+            data = AuthToken.objects.select_related('user').get(token = token).user
+            cache.set(str(token) +'user',data ,3600*24)
+        else:
+            data = cache.get(str(token) + 'user')
+        return data
     return False
 
 def getIntern(request):
     if 'HTTP_ACCESSTOKEN' in request.META:
         token = request.META['HTTP_ACCESSTOKEN']
-        user = list(AuthToken.objects.select_related('user').filter(token = token))
-        if len(user) > 0:
-            user = user[0].user
-            intern = Intern.objects.filter(user__user = user)
-            if intern.exists():
-                return list(intern)[0]
+        if cache.get(str(token) + 'intern') is None:
+            user = list(AuthToken.objects.select_related('user').filter(token = token))
+            if len(user) > 0:
+                user = user[0].user
+                intern = list(Intern.objects.filter(user__user = user))
+                if len(intern) > 0:
+                    data = intern[0]
+                    cache.set(str(token) + 'intern',data,3600*24)
+                else:
+                    return False
             else:
                 return False
         else:
-            return False
+            data = cache.get(str(token) + 'intern')
+        return data
     return False
 
 def getCompanyUser(request):
     if 'HTTP_ACCESSTOKEN' in request.META:
         token = request.META['HTTP_ACCESSTOKEN']
-        user = AuthToken.objects.select_related('user').get(token = token).user
-        company_user = Company_User.objects.filter(user__user = user)
-        return company_user
-    return False
+        user = list(AuthToken.objects.select_related('user').filter(token = token))
+        if cache.get(str(token) + 'companyuser') is None:
+            if len(user) > 0:
+                user = user[0].user
+                company_user = list(Company_User.objects.filter(user__user = user))
+                if len(company_user) > 0:
+                    data = company_user[0]
+                    cache.set(str(token) + 'companyuser',data,3600*24)
+                else:
+                    return False
+            else:
+                return False
+        else:
+            data = cache.get(str(token) + 'companyuser')
+        return data
+    else:
+        return False
 
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:

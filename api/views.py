@@ -543,6 +543,7 @@ def forgot(request,code = None):
 
 @api_view(['GET'])
 def resume(request):
+    '''
     if cache.get(str('test') + 'resume') is None:
         intern = Intern.objects.select_related('user').select_related('user__user').select_related('user__address').get(id=6)
         projects_data = Project.objects.filter(intern = intern)#.values_list('created_at','updated_at','name','description','location','start','end','description','intern').
@@ -587,31 +588,35 @@ def resume(request):
         else:
             return Response({'err':'invalid request'})
         if len(intern) > 0:
-            intern = list(intern)[0]
-            projects_data = Project.objects.filter(intern = intern)
-            jobs_data = Job.objects.filter(intern = intern)
-            degrees_data = Degree.objects.filter(intern = intern)
-            github_data = list(Github.objects.filter(intern = intern))
-            if list(github_data) > 0:
-                github = GithubSerializer(github_data,many=False).data
+            if cache.get(str(token) + 'resume') is None:
+                intern = list(intern)[0]
+                projects_data = Project.objects.filter(intern = intern)
+                jobs_data = Job.objects.filter(intern = intern)
+                degrees_data = Degree.objects.filter(intern = intern)
+                github_data = list(Github.objects.filter(intern = intern))
+                if list(github_data) > 0:
+                    github = GithubSerializer(github_data,many=False).data
+                else:
+                    github = {}
+                projects = ProjectSerializer(projects_data, many=True).data
+                degrees = DegreeSerializer(degrees_data, many=True).data
+                jobs = JobSerializer(jobs_data, many=True).data
+                intern = InternSerializer(intern, many=False).data
+                data = {
+                    'projects':projects,
+                    'jobs':jobs,
+                    'intern':intern,
+                    'degrees':degrees,
+                    'github':github
+                }
+                cache.set(str('test') + 'resume',data , 3600*24)
             else:
-                github = {}
-            projects = ProjectSerializer(projects_data, many=True).data
-            degrees = DegreeSerializer(degrees_data, many=True).data
-            jobs = JobSerializer(jobs_data, many=True).data
-            intern = InternSerializer(intern, many=False).data
-            return JsonResponse({
-                'projects':projects,
-                'jobs':jobs,
-                'intern':intern,
-                'degrees':degrees,
-                'github':github
-            })
+                data = cache.get(str(token) + 'resume')
+            return JsonResponse(data)
         else:
             return Response({'err':'invalid intern'})
     else:
         return Response({'err':'no token'})
-    '''
 
 class InternshipFilter(django_filters.FilterSet):
     class Meta:
@@ -628,7 +633,7 @@ def sub(request):
     sub = SubSerializer(Sub.objects.all(),many=True)
     return Response(sub.data)
 
-class InternshipReadList(viewsets.GenericViewSet):
+class InternshipReadList(generics.ListAPIView):
     pagination_class = BasicPagination
     serializer_class = InternshipReadSerializer
     filter_backends = (DjangoFilterBackend,filterr.SearchFilter,DeleteFilter,filterr.OrderingFilter,DurationFilterBackend,CodeIdFilterBackend,FullInternshipFilterBackend)
@@ -639,7 +644,6 @@ class InternshipReadList(viewsets.GenericViewSet):
     def get_queryset(self):
         intern = getIntern(self.request)
         queryset = Internship.objects.select_related('company','category','company_user').prefetch_related('available','submission','available','skills').all()
-
         if not intern or 'id' in self.request.GET:
             return queryset
         submissions= Submission.objects.select_related('internship').filter(intern = intern)
@@ -648,7 +652,7 @@ class InternshipReadList(viewsets.GenericViewSet):
         return queryset
 
     def list(self, request, *args, **kwargs):
-        if 'page' in request.GET and int(request.GET['page']) < 0:
+        if 'page' in request.GET and int(request.GET['page']) > 0:
             page = request.GET['page']
         else:
             page = 1
@@ -669,6 +673,7 @@ class InternshipReadList(viewsets.GenericViewSet):
         name = str(name)
         name = ''
         if cache.get(self.__class__.__name__ + str(page) + str(limit)+name) is None:
+            print('setting cache')
             instance = self.filter_queryset(self.get_queryset())
             nextl = len(instance) > (int(page) - 1)*int(limit)
             instance = (instance)[(int(page) - 1)*int(limit):int(page)*int(limit)]
@@ -678,7 +683,7 @@ class InternshipReadList(viewsets.GenericViewSet):
                 'count':len(data),
                 'links': {
                     'next': nextl,
-                    'previous': page > 1
+                    'previous': int(page) > 1
                 },
                 'results': data
             }
