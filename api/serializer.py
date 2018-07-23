@@ -42,11 +42,6 @@ class AddressSerializer(serializers.ModelSerializer):
         model = Address
         fields = ('apartment','street','city','zip_code','country')
 
-class SubSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Sub
-        fields = ('id','link')
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -185,6 +180,12 @@ class Company_UserAddSerializer(serializers.ModelSerializer):
         company_user ,created = Company_User.objects.update_or_create(user = user ,added_user = added_user_data, **validated_data)
         return company_user
 
+class SubSerializer(serializers.ModelSerializer):
+#    college = CollegeSerializer(read_only=True)
+    class Meta:
+        model = Sub
+        fields = ['id','link']#,'college']
+
 class InternSerializer(serializers.ModelSerializer):
 
     user = Custom_UserSerializer(required=True)
@@ -193,8 +194,7 @@ class InternSerializer(serializers.ModelSerializer):
         slug_field='name',
         queryset=Skill.objects.all()
     )
-    sub = SubSerializer(many=False)
-
+    sub = SubSerializer(required=True)
     class Meta:
         model = Intern
         fields = ['id', 'user', 'skills','sub']
@@ -364,12 +364,6 @@ class QuestionReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = ['id','question','placeholder']
-
-class SubSerializer(serializers.ModelSerializer):
-    college = CollegeSerializer(read_only=True)
-    class Meta:
-        model = Sub
-        fields = ['id','link','college']
 
 class InternshipSerializer(serializers.ModelSerializer):
 
@@ -586,11 +580,11 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Submission
-        fields = ['id', 'intern','college','internship','status']
+        fields = ['id', 'intern','sub','internship','status']
 
     def validate(self, data):
         if self.context['request'].method != 'PATCH':
-            if Submission.objects.filter(intern = data['intern'] , internship = data['internship'],college = data['college']).exists():
+            if Submission.objects.filter(intern = data['intern'] , internship = data['internship'],sub = data['sub']).exists():
                 raise serializers.ValidationError("Already applied")
             return data
         return data
@@ -607,7 +601,7 @@ class SubmissionInternReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Submission
-        fields = ['id', 'intern','college','internship','status','selected','created_at']
+        fields = ['id', 'intern','sub','internship','status','selected','created_at']
         read_only_fields = ('status','created_at')
 
     def create(self, validated_data):
@@ -625,7 +619,7 @@ class SubmissionCompanyReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Submission
-        fields = ['id', 'intern','college','internship','status','selected','created_at']
+        fields = ['id', 'intern','sub','internship','status','selected','created_at']
         read_only_fields = ('status','created_at')
 
     def create(self, validated_data):

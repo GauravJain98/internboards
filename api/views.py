@@ -120,7 +120,7 @@ class Company_UserAddList(viewsets.ModelViewSet):
     queryset = Company_User.objects.all()
     serializer_class = Company_UserAddSerializer
 
-class InternList(viewsets.GenericViewSet):
+class InternList(viewsets.ModelViewSet):
 #    permission_classes  = (IsAuthenticated2,)
     queryset = Intern.objects.select_related('user','user__user','user__address','sub').prefetch_related('skills').all()
     serializer_class = InternSerializer
@@ -130,13 +130,13 @@ class InternList(viewsets.GenericViewSet):
 def loaderio(request):
     return HttpResponse('loaderio-31e01252bfb60d0ec0fbabd93985c4ca')
 
-class Company_UserList(viewsets.GenericViewSet):
+class Company_UserList(viewsets.ModelViewSet):
     queryset = Company_User.objects.select_related('user').select_related('user__address').select_related('user__user').all()
     serializer_class = Company_UserSerializer
     pagination_class = BasicPagination
     filter_backends = (UsernameFilterBackend,DeleteFilter)
 
-class CategoryList(viewsets.GenericViewSet):
+class CategoryList(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = BasicPagination
