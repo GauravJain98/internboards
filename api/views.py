@@ -131,7 +131,7 @@ def loaderio(request):
     return HttpResponse('loaderio-31e01252bfb60d0ec0fbabd93985c4ca')
 
 class Company_UserList(viewsets.ModelViewSet):
-    queryset = Company_User.objects.select_related('user').select_related('user__address').select_related('user__user').all()
+    queryset = Company_User.objects.prefetch_related('company__hiring').select_related('user','company','user__address','user__user').all()
     serializer_class = Company_UserSerializer
     pagination_class = BasicPagination
     filter_backends = (UsernameFilterBackend,DeleteFilter)

@@ -54,14 +54,14 @@ def token(request):
                 if data['usertype'] == 'intern':
                     user = Intern.objects.select_related('user__user','sub').filter(user__user__username = data['username'])
                 if data['usertype'] == 'company':
-                    user = Company_User.objects.select_related('user__user','sub').filter(user__user__username = data['username'])
+                    user = Company_User.objects.select_related('user__user').filter(user__user__username = data['username'])
                 if not user.exists():
                     return Response({'error':'Invalid user'},status= status.HTTP_401_UNAUTHORIZED)
                 else:
                     user = list(user)[0]
                 auth = authenticate(username=data['username'], password=data['password'])
                 if auth:
-                    if 'sub' in request.GET:
+                    if 'sub' in request.GET and data['usertype'] == 'company':
                         if user.sub.link != request.GET['sub']:
                             return Response({'error':'Invalid Credentials'},status=status.HTTP_401_UNAUTHORIZED)
                     token = AuthToken(client = list(client)[0],user = user.user.user,expires = expire)
