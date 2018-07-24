@@ -394,6 +394,7 @@ class Internship(models.Model):
     approved = models.BooleanField(default = 'False')
     denied = models.BooleanField(default = 'False')
     allowed = models.BooleanField(default = 'False')
+    is_main = models.BooleanField(default = 'False')
     #perks
     status = models.IntegerField(default = 1)
     certificate = models.BooleanField(default = 'False')
