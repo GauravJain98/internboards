@@ -52,15 +52,18 @@ def token(request):
         if client.exists():
             if data['granttype'] == 'password':
                 if data['usertype'] == 'intern':
-                    user = Intern.objects.select_related('user__user').filter(user__user__username = data['username'])
+                    user = Intern.objects.select_related('user__user','sub').filter(user__user__email = data['username'])
                 if data['usertype'] == 'company':
-                    user = Company_User.objects.select_related('user__user').filter(user__user__username = data['username'])
+                    user = Company_User.objects.select_related('user__user').filter(user__user__email = data['username'])
                 if not user.exists():
                     return Response({'error':'Invalid user'},status= status.HTTP_401_UNAUTHORIZED)
                 else:
                     user = list(user)[0]
                 auth = authenticate(username=data['username'], password=data['password'])
                 if auth:
+                    if 'sub' in request.GET and data['usertype'] == 'company' and request.GET['sub'] !='main':
+                        if user.sub.link != request.GET['sub']:
+                            return Response({'error':'Invalid Credentials'},status=status.HTTP_401_UNAUTHORIZED)
                     token = AuthToken(client = list(client)[0],user = user.user.user,expires = expire)
                     token.save()
                     return Response({
@@ -91,7 +94,7 @@ def token(request):
         else:
             err = 'invalid client'
     return Response({'error/s':err},status= status.HTTP_400_BAD_REQUEST)
- 
+
 
 @api_view(['POST'])
 def revoke(request):

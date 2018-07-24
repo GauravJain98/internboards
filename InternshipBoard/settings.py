@@ -28,12 +28,20 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+def call(self):
+    return True
+
+
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': call,
+}
+#INTERNAL_IPS = ['13.250.54.134','http://api.internboards.com/']
 
 CORS_ALLOW_HEADERS = (
     'accesstoken',
     'Content-Type',
 )
-    
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -44,23 +52,45 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.messages',
+#    'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
-    'drf_multiple_model',
     'django_filters',
+    'debug_toolbar',
+    'django_mysql'
 ]
 
+
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+#     'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
+#    'django.middleware.cache.FetchFromCacheMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+DEBUG_TOOLBAR_PANELS = [
+    'debug_toolbar.panels.versions.VersionsPanel',
+    'debug_toolbar.panels.timer.TimerPanel',
+    'debug_toolbar.panels.settings.SettingsPanel',
+    'debug_toolbar.panels.headers.HeadersPanel',
+    'debug_toolbar.panels.request.RequestPanel',
+    'debug_toolbar.panels.sql.SQLPanel',
+    'debug_toolbar.panels.staticfiles.StaticFilesPanel',
+    'debug_toolbar.panels.templates.TemplatesPanel',
+    'debug_toolbar.panels.cache.CachePanel',
+    'debug_toolbar.panels.signals.SignalsPanel',
+    'debug_toolbar.panels.logging.LoggingPanel',
+    'debug_toolbar.panels.redirects.RedirectsPanel',
 ]
 
 ROOT_URLCONF = 'InternshipBoard.urls'
@@ -100,11 +130,24 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+    }
+}
+
+CACHE_MIDDLEWARE_SECONDS = 2
+
+
+
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
+    'DEFAULT_PERMISSION_CLASSES': [],
     '''
     'DEFAULT_PAGINATION_CLASS': 'api.pagination.BasicPagination',
     'PAGE_SIZE': 20,
@@ -118,7 +161,26 @@ REST_FRAMEWORK = {
         'user': '1000/second'
     }
 }
-
+'''
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR + '/debug.txt',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+'''
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
 
@@ -159,3 +221,6 @@ AWS_SECRET_ACCESS_KEY = "dLmxc90wncFYTyrDQ3+9VkE6vBofY2SpidvwoIog"
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
+MEDIA_ROOT  = os.path.join(BASE_DIR, 'static')
+MEDIA_URL = '/'

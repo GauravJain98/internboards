@@ -4,8 +4,11 @@ import requests
 from urllib.parse import urlencode
 from rest_framework.decorators import api_view
 from django.contrib.auth.models import User
-from oauth.models import AuthToken
+from oauth.models import AuthToken, Client
 import json
+from .models import *
+from api.models import Intern,Custom_User
+from django.http import JsonResponse
 from rest_framework.response import Response
 
 @api_view(['GET'])
@@ -33,13 +36,17 @@ def studentGiriRedirect(request):
         data = requests.get(url +urlencode(params))
         email = data.json()['email']
         name = data.json()['name']
-        if not User.objects.filter(email = email):
+        if not User.objects.filter(email = email,username=email):
             user = User.objects.create_user(username=email,email = email)
-            user.save
-        user = User.objects.get(email = email)
-        intern = Intern(user=user)
-        intern.save()
-        auth_token = AuthToken(client__client_id='id',user=user,revoked = False)
+            cuser = Custom_User(user = user)
+            user.save()
+            cuser.save()
+            intern = Intern(user=cuser)
+            intern.save()
+        else:
+            user = User.objects.get(username=email,email = email)
+            cuser = Custom_User.objects.get(user = user)
+        auth_token = AuthToken(client= Client.objects.get(client_id='id'),user=user,revoked = False)
         auth_token.save()
         internurl = 'http://internboards.com/login/studentgiri?'
         return redirect(internurl+ urlencode({'access_token':auth_token.token,'username':user.username}))
@@ -77,12 +84,16 @@ def githubRedirect(request):
         origanization = data['origanization']
         owned_private_repo = data
         name = data['name']
-        if not User.objects.filter(email = email):
-             user = User.objects.create_user(email = email,first_name=name.split(" "[0],last_name=name.split(" "[1]),username=email))
-             user.save()
-        user = User.objects.get(email = email)
-        intern = Intern(user=user)
-        intern.save()
+        if not User.objects.filter(email = email,username=email):
+            user = User.objects.create_user(username=email,email = email)
+            cuser = Custom_User(user = user)
+            user.save()
+            cuser.save()
+            intern = Intern(user=cuser)
+            intern.save()
+        else:
+            user = User.objects.get(username=email,email = email)
+            cuser = Custom_User.objects.get(user = user)
         github = Github(follower=follower,following=following,handle=handle,intern=intern,owned_private_repo=owned_private_repo,stars = stars,repositories=repositories,origanization_url = origanization_url,owned_public_repo=owned_public_repo,collaborators = collaborators,url = url)
         github.save()
         auth = AuthToken(user = user,revoked = False)
@@ -93,3 +104,34 @@ def githubRedirect(request):
     except:
         internurl = 'http://internboards.com/login/studentgiri?'
         return redirect(internurl+ urlencode({'access_token':'error'}))
+
+
+def tester(request):
+    datwa = testY.objects.create(url="123",data = {'id': '123','message': 'Loving #django and #mysql','coords': [34.4, 56.2]})
+    #     'degrees':[{
+    #       'id':'1'
+    #     },{
+    #       'id':'1'
+    #     },{
+    #       'id':'2'
+    #     }]
+    # ,
+    # 'projects':[{
+    #       'id':'1'
+    #     },{
+    #       'id':'1'
+    #     },{
+    #       'id':'2'
+    #     }]
+    # ,
+    # 'jobs':[{
+    #       'id':'1'
+    #     },{
+    #       'id':'1'
+    #     },{
+    #       'id':'2'
+    #     }]
+    # })
+
+    datwa.save()
+    return JsonResponse(datwa.data)
