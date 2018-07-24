@@ -255,15 +255,15 @@ def addCompanyUser(request):
         })
 
 @api_view(['GET'])
-@permission_classes((IsAuthenticated2,))
 def submissionCompany(request):
+#optimize this
     '''
     tester
-    submissions = Submission.objects.select_related('intern').prefetch_related('intern__skills').prefetch_related('answer').prefetch_related('answer__question').select_related('intern__user').select_related('intern__user__address').select_related('intern__user__user').select_related('internship').prefetch_related('internship__skills').prefetch_related('intern__jobs').prefetch_related('intern__degrees').prefetch_related('intern__projects').filter(internship__id = 90)
+    submissions = Submission.objects.select_related('intern').prefetch_related('intern__skills').prefetch_related('answer').prefetch_related('answer__question').select_related('intern__user').select_related('intern__user__address').select_related('intern__user__user').select_related('internship').prefetch_related('internship__skills').prefetch_related('intern__jobs').prefetch_related('intern__degrees').prefetch_related('intern__projects').filter(internship__id = 20)
     if 'id' in request.GET:
         counts = Submission.objects.all().values('status').annotate(total = Count('status'))
     else:
-        counts = Submission.objects.filter(internship__company =Company_User.objects.get(user__user = AuthToken.objects.get(token = request.META['HTTP_ACCESSTOKEN']).user).company).filter(internship__id_code = request.GET['internship']).values('status').annotate(total = Count('status'))
+        counts = Submission.objects.filter(internship__company =Company.objects.get(id=1)).filter(internship__id_code = request.GET['internship']).values('status').annotate(total = Count('status'))
     hired = 0
     shortlisted = 0
     pending = 0
@@ -411,7 +411,6 @@ def submissionCompany(request):
         'interviewed':interviewed,
         'submissions':[],
     }
-    print(sub)
     if sub is None:
         for submission_data in submissions:
             submission = SubmissionCompanyReadSerializer(submission_data,many=False).data
@@ -445,8 +444,7 @@ def submissionCompany(request):
             'degrees':degree,
             'questions':questions,
         })
-        return JsonResponse(res)
-
+        return Response(res)
 @api_view(['PATCH'])
 @csrf_exempt
 def updateInternship(request,id):
@@ -775,29 +773,18 @@ class SubmissionCompanyReadList(viewsets.ModelViewSet):
     serializer_class = SubmissionCompanyReadSerializer
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,DeleteFilter)
-    filter_fields = ('intern','status','internship__id_code')
+    filter_fields = ('intern','status','internship')
     ordering = ('-created_at',)
 
 class QuestionList(viewsets.ModelViewSet):
-    permission_classes  = (IsAuthenticated2,)
+    #permission_classes  = (IsAuthenticated2,)
     queryset = Question.objects.select_related('internship').all()
     serializer_class = QuestionSerializer
     pagination_class = BasicPagination
-    filter_backends = (InternshipFilterBackend,DeleteFilter)
-    def create(self, request, *args, **kwargs):
-        """
-        #checks if post request data is an array initializes serializer with many=True
-        else executes default CreateModelMixin.create function
-        """
-        is_many = isinstance(request.data, list)
-        if not is_many:
-            return super(QuestionSerializer, self).create(request, *args, **kwargs)
-        else:
-            serializer = self.get_serializer(data=request.data, many=True)
-            serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
-            headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    filter_backends = (DjangoFilterBackend,InternshipFilterBackend,DeleteFilter)
+    filter_fields = ('intern','status','internship__id_code')
+    ordering = ('-created_at',)
+
 
 class AnswerList(viewsets.ModelViewSet):
     permission_classes  = (IsAuthenticated2,)
