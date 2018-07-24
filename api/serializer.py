@@ -200,11 +200,10 @@ class Company_UserAddSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
-        added_user_data = validated_data.pop('added_user')
 
         user = Custom_UserSerializer.create(Custom_UserSerializer(), validated_data=user_data)
 
-        company_user ,created = Company_User.objects.update_or_create(user = user ,added_user = added_user_data, **validated_data)
+        company_user ,created = Company_User.objects.update_or_create(user = user , **validated_data)
         return company_user
 
 class SubSerializer(serializers.ModelSerializer):
@@ -611,7 +610,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if self.context['request'].method != 'PATCH':
-            if Submission.objects.filter(intern = data['intern'] , internship = data['internship'],sub = data['sub']).exists():
+            if Submission.objects.filter(intern = data['intern'] , internship = data['internship']).exists():
                 raise serializers.ValidationError("Already applied")
             return data
         return data
