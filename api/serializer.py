@@ -128,14 +128,14 @@ class CompanySerializer(serializers.ModelSerializer):
         return company
 
 class CompanyReadSerializer(serializers.ModelSerializer):
-    hiring = serializers.SlugRelatedField(
-        many=True,
-        slug_field='link',
-        queryset=Sub.objects.all()
-    )
+    # hiring = serializers.SlugRelatedField(
+    #     many=True,
+    #     slug_field='link',
+    #     queryset=Sub.objects.all()
+    # )
     class Meta:
         model = Company
-        fields = ('id','name','hiring')
+        fields = ('id','name')
 
     def create(self,validated_data):
         pass
@@ -426,7 +426,7 @@ class InternshipSerializer(serializers.ModelSerializer):
         questions_data = validated_data.pop('questions')
         internship = Internship.objects.create(company_user = company_user_data ,company = company_data , **validated_data)
         for question_data in questions_data:
-            questions = Question.objects.create(internship = internship,placeholder = question_data.placeholder,question=question_data.id)
+            questions = Question.objects.create(internship = internship,placeholder = question_data.placeholder,question=question_data.question_text)
         for skill in skills_data:
             internship.skills.add(skill)
         for hire in hiring_data:

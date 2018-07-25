@@ -166,7 +166,7 @@ class SiteAdminList(viewsets.ModelViewSet):
     pagination_class = BasicPagination
 
 class SkillList(viewsets.GenericViewSet):
-    permission_classes  = (IsAuthenticated2,)
+    # permission_classes  = (IsAuthenticated2,)
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
     def list(self, request, *args, **kwargs):
@@ -205,7 +205,7 @@ class ProjectList(viewsets.ModelViewSet):
     filter_fields = ('intern',)
 
 @api_view(['GET'])
-@permission_classes((IsAuthenticated2,))
+@permission_classes((Company_UserPermission,))
 def addCompanyUser(request):
     if 'email' in request.POST:
         email = request.POST['email']
@@ -761,7 +761,7 @@ class SubmissionInternReadList(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,InternshipFilterBackend,filterr.OrderingFilter,DeleteFilter)
     filter_fields = ('intern','status','internship__id_code')
     ordering = ('-created_at',)
-    queryset = Submission.objects.select_related('intern').prefetch_related('intern__skills').prefetch_related('internship__skills').select_related('intern__user').select_related('intern__user__user').select_related('intern__user__address').select_related('internship').select_related('internship__company').all()
+    queryset = Submission.objects.prefetch_related('internship__skills','internship__category','internship__available').select_related('internship__company').all()
 
 class Submit(viewsets.ModelViewSet):
     queryset = Submission.objects.all()
