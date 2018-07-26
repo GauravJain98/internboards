@@ -1,5 +1,6 @@
 #change the just read only views to function based views for effiency
 #add permissions to each route
+#refactor code
 from django.db import connection
 from django.shortcuts import get_object_or_404
 from django.db.models import Count,Value
@@ -638,12 +639,12 @@ class InternshipReadList(generics.ListAPIView):
     serializer_class = InternshipReadSerializer
     filter_backends = (DjangoFilterBackend,filterr.SearchFilter,DeleteFilter,filterr.OrderingFilter,DurationFilterBackend,CodeIdFilterBackend,FullInternshipFilterBackend)
     filter_fields = ('category','location','company','approved','skills','available','PPO','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
-    search_fields = ('category__name','location','responsibilities','skills__name')
+    search_fields = ('category__name','responsibilities','company__description','skills__name')
     ordering_fields = ('deadline', 'duration')
 
     def get_queryset(self):
         intern = getIntern(self.request)
-        queryset = Internship.objects.select_related('company','category','company_user').prefetch_related('available','submission','available','skills').all()
+        queryset = Internship.objects.select_related('company','category','company_user').prefetch_related('available','submission','available','skills','company__hiring').all()
         if not intern or 'id' in self.request.GET:
             return queryset
         submissions= Submission.objects.select_related('internship').filter(intern = intern)
@@ -675,7 +676,7 @@ class InternshipReadList(generics.ListAPIView):
         if cache.get(self.__class__.__name__ + str(page) + str(limit)+name) is None:
         #    print('setting cache')
             instance = self.filter_queryset(self.get_queryset())
-            nextl = len(instance) > (int(page) - 1)*int(limit)
+            nextl = len(instance) > (int(page))*int(limit)
             instance = (instance)[(int(page) - 1)*int(limit):int(page)*int(limit)]
             serializer =self.serializer_class(instance,many=True)
             data = serializer.data
@@ -762,7 +763,7 @@ class SubmissionInternReadList(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,InternshipFilterBackend,filterr.OrderingFilter,DeleteFilter)
     filter_fields = ('intern','status','internship__id_code')
     ordering = ('-created_at',)
-    queryset = Submission.objects.prefetch_related('internship__skills','internship__category','internship__available').select_related('internship__company').all()
+    queryset = Submission.objects.prefetch_related('internship__skills','internship__category','internship__available','internship__company__hiring').select_related('internship__company').all()
 
 class Submit(viewsets.ModelViewSet):
     queryset = Submission.objects.all()
