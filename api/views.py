@@ -1,4 +1,5 @@
 #change the just read only views to function based views for effiency
+#add permissions to each route
 from django.db import connection
 from django.shortcuts import get_object_or_404
 from django.db.models import Count,Value

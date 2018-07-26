@@ -128,14 +128,14 @@ class CompanySerializer(serializers.ModelSerializer):
         return company
 
 class CompanyReadSerializer(serializers.ModelSerializer):
-    # hiring = serializers.SlugRelatedField(
-    #     many=True,
-    #     slug_field='link',
-    #     queryset=Sub.objects.all()
-    # )
+    hiring = serializers.SlugRelatedField(
+        many=True,
+        slug_field='link',
+        queryset=Sub.objects.all()
+    )
     class Meta:
         model = Company
-        fields = ('id','name')
+        fields = ('id','name','hiring')
 
     def create(self,validated_data):
         pass
