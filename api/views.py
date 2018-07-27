@@ -784,7 +784,7 @@ class QuestionList(viewsets.ModelViewSet):
     serializer_class = QuestionSerializer
     pagination_class = BasicPagination
     filter_backends = (DjangoFilterBackend,InternshipFilterBackend,DeleteFilter)
-    filter_fields = ('intern','status','internship__id_code')
+    #filter_fields = ('intern','status','internship__id_code')
     ordering = ('-created_at',)
 
 

@@ -27,7 +27,7 @@ SECRET_KEY = '4diltns)9_xeshyh)nx3i*oc7ro6gi_dmhg-^o74b1eb5e383p'
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-
+'''
 def call(self):
     return True
 
@@ -35,6 +35,7 @@ def call(self):
 DEBUG_TOOLBAR_CONFIG = {
     'SHOW_TOOLBAR_CALLBACK': call,
 }
+'''
 #INTERNAL_IPS = ['13.250.54.134','http://api.internboards.com/']
 
 CORS_ALLOW_HEADERS = (
@@ -224,3 +225,5 @@ STATIC_URL = '/static/'
 
 MEDIA_ROOT  = os.path.join(BASE_DIR, 'static')
 MEDIA_URL = '/'
+
+STATIC_ROOT = 'static/'

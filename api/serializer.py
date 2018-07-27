@@ -86,7 +86,7 @@ class Custom_UserSerializer(serializers.ModelSerializer):
     """
 
     user = UserSerializer(required=True)
-    address = AddressSerializer(required = False)
+    #address = AddressSerializer(required = False)
 
     class Meta:
         model = Custom_User
@@ -247,11 +247,6 @@ class InternAddSerializer(serializers.ModelSerializer):
         queryset=Skill.objects.all()
     )
     token = serializers.SerializerMethodField()
-    sub = serializers.SlugRelatedField(
-        many=False,
-        slug_field='link',
-        queryset=Sub.objects.all()
-    )
     class Meta:
         model = Intern
         fields = ['id', 'user', 'skills','sub','token']
@@ -267,8 +262,10 @@ class InternAddSerializer(serializers.ModelSerializer):
             return token.token
         return ""
     def to_representation(self, instance):
-
-        return {}
+        if self.context['request'].method == 'POST':
+            return super(InternAddSerializer, self).to_representation(instance)
+        else:
+            return {}
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
@@ -287,7 +284,8 @@ class GithubSerializer(serializers.ModelSerializer):
     class Meta:
         model = Github
         fields = ('intern','collaborators','stars','followers','repositories','following')
-
+'''
+'''
 class SiteAdminSerializer(serializers.ModelSerializer):
 
     user = Custom_UserSerializer(required=True)
@@ -426,6 +424,7 @@ class InternshipSerializer(serializers.ModelSerializer):
         questions_data = validated_data.pop('questions')
         internship = Internship.objects.create(company_user = company_user_data ,company = company_data , **validated_data)
         for question_data in questions_data:
+            question_data = dict(question_data)
             questions = Question.objects.create(internship = internship,placeholder = question_data.placeholder,question=question_data.question_text)
         for skill in skills_data:
             internship.skills.add(skill)
