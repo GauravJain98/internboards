@@ -425,7 +425,7 @@ class InternshipSerializer(serializers.ModelSerializer):
         internship = Internship.objects.create(company_user = company_user_data ,company = company_data , **validated_data)
         for question_data in questions_data:
             question_data = dict(question_data)
-            questions = Question.objects.create(internship = internship,placeholder = question_data.placeholder,question=question_data.question_text)
+            questions = Question.objects.create(internship = internship,placeholder = question_data['placeholder'],question=question_data['question'])
         for skill in skills_data:
             internship.skills.add(skill)
         for hire in hiring_data:
