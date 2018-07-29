@@ -634,7 +634,7 @@ def sub(request):
     sub = SubSerializer(Sub.objects.all(),many=True)
     return Response(sub.data)
 
-class InternshipReadList(generics.ListAPIView):
+class InternshipReadList(viewsets.ReadOnlyModelViewSet):
     pagination_class = BasicPagination
     serializer_class = InternshipReadSerializer
     filter_backends = (DjangoFilterBackend,filterr.SearchFilter,DeleteFilter,filterr.OrderingFilter,DurationFilterBackend,CodeIdFilterBackend,FullInternshipFilterBackend)

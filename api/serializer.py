@@ -417,20 +417,23 @@ class InternshipSerializer(serializers.ModelSerializer):
         fields = ['id','category','company','available','skills','start','company_user','questions','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend_rate','location']
 
     def create(self, validated_data):
-        skills_data = validated_data.pop('skills')
-        hiring_data = validated_data.pop('available')
-        company_data = validated_data.pop('company')
-        company_user_data = validated_data.pop('company_user')
-        questions_data = validated_data.pop('questions')
-        internship = Internship.objects.create(company_user = company_user_data ,company = company_data , **validated_data)
-        for question_data in questions_data:
-            question_data = dict(question_data)
-            questions = Question.objects.create(internship = internship,placeholder = question_data['placeholder'],question=question_data['question'])
-        for skill in skills_data:
-            internship.skills.add(skill)
-        for hire in hiring_data:
-            internship.available.add(hire)
-        return internship
+        try:
+            skills_data = validated_data.pop('skills')
+            hiring_data = validated_data.pop('available')
+            company_data = validated_data.pop('company')
+            company_user_data = validated_data.pop('company_user')
+            questions_data = validated_data.pop('questions')
+            internship = Internship.objects.create(company_user = company_user_data ,company = company_data , **validated_data)
+            for question_data in questions_data:
+                question_data = dict(question_data)
+                questions = Question.objects.create(internship = internship,placeholder = question_data['placeholder'],question=question_data['question'])
+            for skill in skills_data:
+                internship.skills.add(skill)
+            for hire in hiring_data:
+                internship.available.add(hire)
+            return internship
+        except:
+             raise serializers.ValidationError("You are INCORRECT!!hopefully ")
     def delete(self, validated_data):
         pass
 
