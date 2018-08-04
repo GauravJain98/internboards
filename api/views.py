@@ -661,7 +661,7 @@ class InternshipReadList(viewsets.ReadOnlyModelViewSet):
             limit = request.GET['limit']
         else:
             limit = 10
-        cache.delete(self.__class__.__name__ + str(page) + str(limit))
+        # cache.delete(self.__class__.__name__ + str(page) + str(limit))
         params = list(request.GET.keys())
         params.sort()
         name = ''
@@ -673,24 +673,24 @@ class InternshipReadList(viewsets.ReadOnlyModelViewSet):
                     name = name + ' '
         name = str(name)
         name = ''
-        if cache.get(self.__class__.__name__ + str(page) + str(limit)+name) is None:
+        # if cache.get(self.__class__.__name__ + str(page) + str(limit)+name) is None:
         #    print('setting cache')
-            instance = self.filter_queryset(self.get_queryset())
-            nextl = len(instance) > (int(page))*int(limit)
-            instance = (instance)[(int(page) - 1)*int(limit):int(page)*int(limit)]
-            serializer =self.serializer_class(instance,many=True)
-            data = serializer.data
-            res = {
-                'count':len(data),
-                'links': {
-                    'next': nextl,
-                    'previous': int(page) > 1
-                },
-                'results': data
-            }
-            cache.set(self.__class__.__name__ + str(page) + str(limit)+name,res , 3600*24)
-        else:
-            res = cache.get(self.__class__.__name__ + str(page) + str(limit)+name)
+        instance = self.filter_queryset(self.get_queryset())
+        nextl = len(instance) > (int(page))*int(limit)
+        instance = (instance)[(int(page) - 1)*int(limit):int(page)*int(limit)]
+        serializer =self.serializer_class(instance,many=True)
+        data = serializer.data
+        res = {
+            'count':len(data),
+            'links': {
+                'next': nextl,
+                'previous': int(page) > 1
+            },
+            'results': data
+        }
+        # cache.set(self.__class__.__name__ + str(page) + str(limit)+name,res , 3600*24)
+        # else:
+        #     res = cache.get(self.__class__.__name__ + str(page) + str(limit)+name)
         return Response(res)
 
     def retrieve(self, request, pk=None):
