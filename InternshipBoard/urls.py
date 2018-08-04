@@ -1,4 +1,5 @@
-"""InternshipBoard URL Configuration
+"""
+InternshipBoard URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/2.0/topics/http/urls/
@@ -30,7 +31,7 @@ router.register(r'intern', views.InternList)
 router.register(r'companyuser', views.Company_UserList)
 router.register(r'category', views.CategoryList)
 router.register(r'company', views.CompanyList)
-router.register(r'siteadmin', views.SiteAdminList)
+#router.register(r'siteadmin', views.SiteAdminList)
 router.register(r'skill', views.SkillList)
 router.register(r'submit', views.Submit)
 router.register(r'degree', views.DegreeList)
@@ -40,7 +41,7 @@ router.register(r'project', views.ProjectList)
 #router.register(r'hiring', views.HiringList)
 router.register(r'internship/read/company/full', views.FullInternshipSubReadList, base_name="Internship")
 router.register(r'internship/read/company', views.InternshipSubReadList, base_name="Internship")
-#router.register(r'internship/read', views.InternshipReadList, base_name="Internship")
+router.register(r'internship/read', views.InternshipReadList, base_name="Internship")
 router.register(r'internship', views.InternshipList)
 #router.register(r'internshipavaliable', views.InternshipAvaliableList)
 
@@ -57,7 +58,7 @@ urlpatterns = [
     url(r'^internshipUpdate/(?P<id>[-\w]+)/', views.updateInternship),
 #    path('update/', views.update),
     path('resume/', views.resume),
-    path('internship/read/', views.InternshipReadList.as_view()),
+    # path('internship/read/', views.InternshipReadList.as_view()),
     path('sub/', views.sub),
     path('test/', views.tester),
     path('passchange/', views.passChange),
@@ -65,7 +66,7 @@ urlpatterns = [
     path('forgot/', views.forgot),
     path('submission/company/', views.submissionCompany),
     url(r'^', include(router.urls))
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]#+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
     import debug_toolbar

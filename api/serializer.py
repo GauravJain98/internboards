@@ -86,7 +86,7 @@ class Custom_UserSerializer(serializers.ModelSerializer):
     """
 
     user = UserSerializer(required=True)
-    address = AddressSerializer(required = False)
+    #address = AddressSerializer(required = False)
 
     class Meta:
         model = Custom_User
@@ -200,11 +200,10 @@ class Company_UserAddSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
-        added_user_data = validated_data.pop('added_user')
 
         user = Custom_UserSerializer.create(Custom_UserSerializer(), validated_data=user_data)
 
-        company_user ,created = Company_User.objects.update_or_create(user = user ,added_user = added_user_data, **validated_data)
+        company_user ,created = Company_User.objects.update_or_create(user = user , **validated_data)
         return company_user
 
 class SubSerializer(serializers.ModelSerializer):
@@ -248,11 +247,6 @@ class InternAddSerializer(serializers.ModelSerializer):
         queryset=Skill.objects.all()
     )
     token = serializers.SerializerMethodField()
-    sub = serializers.SlugRelatedField(
-        many=False,
-        slug_field='link',
-        queryset=Sub.objects.all()
-    )
     class Meta:
         model = Intern
         fields = ['id', 'user', 'skills','sub','token']
@@ -268,8 +262,10 @@ class InternAddSerializer(serializers.ModelSerializer):
             return token.token
         return ""
     def to_representation(self, instance):
-
-        return {}
+        if self.context['request'].method == 'POST':
+            return super(InternAddSerializer, self).to_representation(instance)
+        else:
+            return {}
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
@@ -288,7 +284,8 @@ class GithubSerializer(serializers.ModelSerializer):
     class Meta:
         model = Github
         fields = ('intern','collaborators','stars','followers','repositories','following')
-
+'''
+'''
 class SiteAdminSerializer(serializers.ModelSerializer):
 
     user = Custom_UserSerializer(required=True)
@@ -420,19 +417,23 @@ class InternshipSerializer(serializers.ModelSerializer):
         fields = ['id','category','company','available','skills','start','company_user','questions','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend_rate','location']
 
     def create(self, validated_data):
-        skills_data = validated_data.pop('skills')
-        hiring_data = validated_data.pop('available')
-        company_data = validated_data.pop('company')
-        company_user_data = validated_data.pop('company_user')
-        questions_data = validated_data.pop('questions')
-        internship = Internship.objects.create(company_user = company_user_data ,company = company_data , **validated_data)
-        for question_data in questions_data:
-            questions = Question.objects.create(internship = internship,placeholder = question_data.placeholder,question=question_data.id)
-        for skill in skills_data:
-            internship.skills.add(skill)
-        for hire in hiring_data:
-            internship.available.add(hire)
-        return internship
+        try:
+            skills_data = validated_data.pop('skills')
+            hiring_data = validated_data.pop('available')
+            company_data = validated_data.pop('company')
+            company_user_data = validated_data.pop('company_user')
+            questions_data = validated_data.pop('questions')
+            internship = Internship.objects.create(company_user = company_user_data ,company = company_data , **validated_data)
+            for question_data in questions_data:
+                question_data = dict(question_data)
+                questions = Question.objects.create(internship = internship,placeholder = question_data['placeholder'],question=question_data['question'])
+            for skill in skills_data:
+                internship.skills.add(skill)
+            for hire in hiring_data:
+                internship.available.add(hire)
+            return internship
+        except:
+             raise serializers.ValidationError("You are INCORRECT!!hopefully ")
     def delete(self, validated_data):
         pass
 
@@ -611,7 +612,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if self.context['request'].method != 'PATCH':
-            if Submission.objects.filter(intern = data['intern'] , internship = data['internship'],sub = data['sub']).exists():
+            if Submission.objects.filter(intern = data['intern'] , internship = data['internship']).exists():
                 raise serializers.ValidationError("Already applied")
             return data
         return data

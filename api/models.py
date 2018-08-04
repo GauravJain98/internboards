@@ -441,6 +441,8 @@ class Internship(models.Model):
             self.visibility = self.deadline + relativedelta(days=15)
             self.code = random_n(4)
         super().save(*args, **kwargs)
+        self.id_code = str(self.id) + str(self.code)
+        super().save()
 
     def delete(self):
         self.archived = True
@@ -562,7 +564,12 @@ class SiteAdmin(models.Model):
         null = False,
         blank = False,
     )
-    college = models.CharField(max_length= 20)
+    sub = models.ForeignKey(
+        Sub,
+        on_delete=models.CASCADE,
+        related_name="admin",
+        null=True
+    )
     def __str__(self):
         return str(self.user.id)
 
