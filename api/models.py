@@ -389,7 +389,6 @@ class Internship(models.Model):
     archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    applications = models.IntegerField(default=0)
     selected = models.IntegerField(default=0)
     approved = models.BooleanField(default = 'False')
     denied = models.BooleanField(default = 'False')

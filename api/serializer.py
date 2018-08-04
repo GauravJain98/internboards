@@ -526,6 +526,8 @@ class InternshipReadSubSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all()
     )
     visibility = serializers.SerializerMethodField()
+    applications = serializers.SerializerMethodField()
+    id = serializers.SerializerMethodField()
     class Meta:
         model =  Internship
         '''
@@ -536,6 +538,9 @@ class InternshipReadSubSerializer(serializers.ModelSerializer):
 
     def get_visibility(self, obj):
         return obj.visibility < now().date()
+
+    def get_application(self, obj):
+        return len(list(Submisisons.objects.get(internship = obj)))
 
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})
