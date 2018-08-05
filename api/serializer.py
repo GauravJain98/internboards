@@ -389,32 +389,37 @@ class QuestionReadSerializer(serializers.ModelSerializer):
         model = Question
         fields = ['id','question','placeholder']
 
-class InternshipSerializer(serializers.ModelSerializer):
-
+class InternshipSerializer(serializers.HyperlinkedModelSerializer):
     company = serializers.PrimaryKeyRelatedField(
         many=False,
-        queryset = Company.objects.all()
+        # queryset = Company.objects.all()
+        read_only=True
     )
-    company_user =  serializers.PrimaryKeyRelatedField(many=False, queryset=Company_User.objects.all())
+    company_user =  serializers.PrimaryKeyRelatedField(many=False,
+    #  queryset=Company_User.objects.all(),
+    read_only=True)
     skills = serializers.SlugRelatedField(
         many=True,
         slug_field='name',
-        queryset=Skill.objects.all()
+        # queryset=Skill.objects.all()
+        read_only=True
     )
     available = serializers.SlugRelatedField(
         many=True,
         slug_field='link',
-        queryset=Sub.objects.all()
+        # queryset=Sub.objects.all()
+        read_only=True
     )
-    questions = QuestionReadSerializer(many=True)
+    questions = QuestionReadSerializer(many=True,read_only=True)
     category = serializers.SlugRelatedField(
         many=False,
         slug_field='name',
-        queryset=Category.objects.all()
+        # queryset=Category.objects.all()
+        read_only=True
     )
     class Meta:
         model =  Internship
-        fields = ['id','category','company','available','skills','start','company_user','questions','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend_rate','location']
+        fields = ['id_code','category','company','available','skills','start','company_user','questions','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend_rate','location']
 
     def create(self, validated_data):
         try:
@@ -527,7 +532,6 @@ class InternshipReadSubSerializer(serializers.ModelSerializer):
     )
     visibility = serializers.SerializerMethodField()
     applications = serializers.SerializerMethodField()
-    id = serializers.SerializerMethodField()
     class Meta:
         model =  Internship
         '''
@@ -539,7 +543,7 @@ class InternshipReadSubSerializer(serializers.ModelSerializer):
     def get_visibility(self, obj):
         return obj.visibility < now().date()
 
-    def get_application(self, obj):
+    def get_applications(self, obj):
         return len(list(Submisisons.objects.get(internship = obj)))
 
     def create(self, validated_data):
@@ -570,6 +574,7 @@ class FullInternshipReadSubSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all()
     )
     visibility = serializers.SerializerMethodField()
+    applications = serializers.SerializerMethodField()
     class Meta:
         model =  Internship
         '''
@@ -580,6 +585,9 @@ class FullInternshipReadSubSerializer(serializers.ModelSerializer):
 
     def get_visibility(self, obj):
         return obj.visibility < now().date()
+
+    def get_applications(self, obj):
+        return len(list(Submisisons.objects.get(internship = obj)))
 
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})

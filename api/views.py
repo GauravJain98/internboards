@@ -732,13 +732,13 @@ class InternshipSubReadList(viewsets.ModelViewSet):
 
 class InternshipList(viewsets.ModelViewSet):
     #permission_classes  = (IsAuthenticated2,)
-    queryset = Internship.objects.select_related('company').select_related('company_user').prefetch_related('skills').prefetch_related('questions').all()[0:0]
+    queryset = Internship.objects.select_related('company','company_user','category').prefetch_related('skills','questions','available','locations').all()
     serializer_class = InternshipSerializer
-
-    def partial_update(self, request,pk):
-        return self.partial_update(request, int(str(pk)[:-4]))
-    def update(self, request,pk):
-        return self.update(request, int(str(pk)[:-4]))
+    lookup_field = 'id_code'
+    # def partial_update(self, request , pk, *args, **kwargs):
+    #     return super().partial_update(request , pk, *args, **kwargs)
+    # def update(self, request,pk):
+    #     return super().update(request, int(str(pk)))
 
 def update(request):
     for i in Internship.objects.all():
