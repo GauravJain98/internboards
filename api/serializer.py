@@ -7,6 +7,8 @@ from oauth.models import AuthToken
 from django.utils.timezone import now
 from django.core.cache import cache
 
+from drf_writable_nested import WritableNestedModelSerializer
+
 def getUser(request):
     if 'HTTP_ACCESSTOKEN' in request.META:
         token = request.META['HTTP_ACCESSTOKEN']
@@ -90,7 +92,7 @@ class Custom_UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Custom_User
-        fields = ['id', 'user', 'address']
+        fields = ['id', 'user',]
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
@@ -101,6 +103,21 @@ class Custom_UserSerializer(serializers.ModelSerializer):
         '''
         custom_user, created = Custom_User.objects.update_or_create(user=user,**validated_data)
         return custom_user
+
+    def update(self,instance, validated_data):
+        user_data = validated_data.pop('user')
+        user = instance.user
+        user.first_name = user_data.get('first_name',user.first_name)
+        user.last_name = user_data.get('last_name',user.last_name)
+        user.email = user_data.get('email',user.email)
+        user.save()
+        # user = UserSerializer.update(validated_data=validated_data,instance=user_data)
+        '''
+        address_data = validated_data.pop('address')
+        address = AddressSerializer.create(AddressSerializer(), validated_data=address_data)
+        '''
+        return instance
+
 
 class CompanySerializer(serializers.ModelSerializer):
     hiring = serializers.SlugRelatedField(
@@ -158,7 +175,7 @@ class CollegeSerializer(serializers.ModelSerializer):
         college , created = College.objects.update_or_create(address=address,**validated_data)
         return college
 
-class Company_UserSerializer(serializers.ModelSerializer):
+class Company_UserSerializer(WritableNestedModelSerializer):
 
     user = Custom_UserSerializer(required=True)
     added_user = serializers.PrimaryKeyRelatedField(many=False, queryset=User.objects.all(),required=False )
@@ -170,11 +187,10 @@ class Company_UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         added_user_data = validated_data.pop('added_user')
-        company_data = validated_data.pop('company')
 
         user = Custom_UserSerializer.create(Custom_UserSerializer(), validated_data=user_data)
 
-        company_user ,created = Company_User.objects.update_or_create(user = user ,company=company_data ,added_user = added_user_data, **validated_data)
+        company_user ,created = Company_User.objects.update_or_create(user = user ,company=Company_User.objects.select_related('company').get(user__user= added_user_data).company ,added_user = added_user_data, **validated_data)
         return company_user
 
 class Company_UserAddSerializer(serializers.ModelSerializer):
@@ -196,7 +212,7 @@ class Company_UserAddSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Company_User
-        fields = ['id', 'user', 'company','is_active','token','is_HR','added_user','share']
+        fields = ['id', 'user', 'company','is_active','token','is_HR','added_user',]
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
@@ -207,7 +223,7 @@ class Company_UserAddSerializer(serializers.ModelSerializer):
         return company_user
 
 class SubSerializer(serializers.ModelSerializer):
-#    college = CollegeSerializer(read_only=True)
+    college = CollegeSerializer(read_only=True)
     class Meta:
         model = Sub
         fields = ['id','link']#,'college']

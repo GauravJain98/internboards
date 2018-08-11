@@ -50,6 +50,7 @@ router.register(r'submission', views.SubmissionList)
 router.register(r'question', views.QuestionList)
 router.register(r'answer/read', views.AnswerReadList)
 router.register(r'answer', views.AnswerList)
+router.register(r'user', views.UserList)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

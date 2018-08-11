@@ -123,6 +123,10 @@ class Company_UserAddList(viewsets.ModelViewSet):
     queryset = Company_User.objects.all()
     serializer_class = Company_UserAddSerializer
 
+class UserList(viewsets.ModelViewSet):
+    queryset = Custom_User.objects.select_related('user').all()
+    serializer_class = Custom_UserSerializer
+
 class InternList(viewsets.ModelViewSet):
 #    permission_classes  = (IsAuthenticated2,)
     queryset = Intern.objects.select_related('user','user__user','user__address','sub').prefetch_related('skills').all()
