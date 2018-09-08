@@ -55,35 +55,22 @@ def studentGiriRedirect(request):
         return redirect(internurl+ urlencode({'access_token':'error'}))
 
 @api_view(['GET'])
-def githubRedirect(request):
+def linkedinRedirect(request):
     try:
-        token = 'error'
         code = request.GET['code']
-        client_id = "5e3d27cb56a6852a0293"
-        redirect_uri = "http://api.internboards.com/callback/github"
-        client_secret = "5705eda5cdfc8eda5c2c07cb4b30b78ca826ff75"
-        url = "https://github.com/login/oauth/access_token"
+        client_id = "81fbza70gn9ndl"
+        redirect_uri = "http://api.internboards.com/callback/linkedin"
+        client_secret = "vvEpek77xHOUV9Kj"
+        url = "https://www.linkedin.com/oauth/v2/accessToken?"
         params = {
             "code":code,
             "client_id":client_id,
             "client_secret":client_secret,
-            "redirect_uri":redirect_uri
+            "redirect_uri":redirect_uri,
+            "grant_type":"authorization_code"
         }
-        url = "https://github.com/login/oauth/access_token?"
         data=requests.post(url, data = params,headers = {'Accept': 'application/json'})
         access_token = data.json()['access_token']
-        params = {
-            'access_token':access_token,
-            'scope':'email'
-        }
-        data = requests.get('https://api.github.com/user?access_token=' + access_token).json()
-        email = data['email']
-        following = data['following']
-        follower = data['follower']
-        handle = data['login']
-        origanization = data['origanization']
-        owned_private_repo = data
-        name = data['name']
         if not User.objects.filter(email = email,username=email):
             user = User.objects.create_user(username=email,email = email)
             cuser = Custom_User(user = user)
@@ -102,7 +89,52 @@ def githubRedirect(request):
         internurl = 'http://internboards.com/login/github?'
         return redirect(internurl+'access_token'+token)
     except:
-        internurl = 'http://internboards.com/login/studentgiri?'
+        internurl = 'http://internboards.com/login/linkedin?'
+        return redirect(internurl+ urlencode({'access_token':'error'}))
+
+@api_view(['GET'])
+def githubRedirect(request):
+    try:
+        code = request.GET['code']
+        client_id = "5e3d27cb56a6852a0293"
+        redirect_uri = "http://api.internboards.com/callback/github"
+        client_secret = "5705eda5cdfc8eda5c2c07cb4b30b78ca826ff75"
+        url = "https://github.com/login/oauth/access_token"
+        params = {
+            "code":code,
+            "client_id":client_id,
+            "client_secret":client_secret,
+            "redirect_uri":redirect_uri
+        }
+        url = "https://github.com/login/oauth/access_token?"
+        data=requests.post(url, data = params,headers = {'Accept': 'application/json'})
+        access_token = data.json()['access_token']
+        params = {
+            'access_token':access_token,
+            'scope':'email'
+        }
+        data = requests.get('https://api.linkedin.com/v2/me?' + access_token).json()
+        return Response(data)
+        # if not User.objects.filter(email = email,username=email):
+        #     user = User.objects.create_user(username=email,email = email)
+        #     cuser = Custom_User(user = user)
+        #     user.save()
+        #     cuser.save()
+        #     intern = Intern(user=cuser)
+        #     intern.save()
+        # else:
+        #     user = User.objects.get(username=email,email = email)
+        #     cuser = Custom_User.objects.get(user = user)
+        # if not len(Github.objects.filter(intern = intern)) > 0:
+        #     github = Github(follower=follower,following=following,handle=handle,intern=intern,owned_private_repo=owned_private_repo,stars = stars,repositories=repositories,origanization_url = origanization_url,owned_public_repo=owned_public_repo,collaborators = collaborators,url = url)
+        #     github.save()
+        # auth = AuthToken(user = user,revoked = False)
+        # auth.save()
+        # token = auth.token
+        # internurl = 'http://internboards.com/login/github?'
+        # return redirect(internurl+'access_token'+token)
+    except:
+        internurl = 'http://internboards.com/login/github?'
         return redirect(internurl+ urlencode({'access_token':'error'}))
 
 
