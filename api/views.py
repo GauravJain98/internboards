@@ -492,7 +492,7 @@ def updateInternship(request,id):
         validate_data['location'] = body['location']
     internship = Internship.objects.filter(id_code=id)
     inter = internship.update(**validate_data)
-    intern = InternshipReadSerializer(internship[0], many=False).data
+    intern = InternshipSerializer(internship[0], many=False).data
     return JsonResponse(intern)
 
 @api_view(['POST'])
@@ -626,7 +626,7 @@ class InternshipFilter(django_filters.FilterSet):
 
 @api_view(['GET'])
 def tester(request):
-    d = InternshipReadSerializer(Internship.objects.filter(**request.GET),many=True)
+    d = InternshipSerializer(Internship.objects.filter(**request.GET),many=True)
     return Response(d.data)
 
 @api_view(['GET'])
@@ -636,7 +636,7 @@ def sub(request):
 
 class InternshipReadList(viewsets.ReadOnlyModelViewSet):
     pagination_class = BasicPagination
-    serializer_class = InternshipReadSerializer
+    serializer_class = InternshipSerializer
     filter_backends = (DjangoFilterBackend,filterr.SearchFilter,DeleteFilter,filterr.OrderingFilter,DurationFilterBackend,CodeIdFilterBackend,FullInternshipFilterBackend)
     filter_fields = ('category','location','company','approved','skills','available','PPO','free_snacks','letter_of_recommendation','free_snacks','flexible_work_hours','certificate','informal_dress_code')
     search_fields = ('category__name','responsibilities','company__description','skills__name')

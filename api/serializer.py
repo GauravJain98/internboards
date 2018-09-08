@@ -245,6 +245,11 @@ class InternAddSerializer(serializers.ModelSerializer):
         many=True,
         slug_field='name',
         queryset=Skill.objects.all()
+    )    
+    sub = serializers.SlugRelatedField(
+        many=False,
+        slug_field='link',
+        queryset=Sub.objects.all()
     )
     token = serializers.SerializerMethodField()
     class Meta:
@@ -389,62 +394,43 @@ class QuestionReadSerializer(serializers.ModelSerializer):
         model = Question
         fields = ['id','question','placeholder']
 
-class InternshipSerializer(serializers.HyperlinkedModelSerializer):
-    company = serializers.PrimaryKeyRelatedField(
-        many=False,
-        # queryset = Company.objects.all()
-        read_only=True
-    )
-    company_user =  serializers.PrimaryKeyRelatedField(many=False,
-    #  queryset=Company_User.objects.all(),
-    read_only=True)
-    skills = serializers.SlugRelatedField(
-        many=True,
-        slug_field='name',
-        # queryset=Skill.objects.all()
-        read_only=True
-    )
-    available = serializers.SlugRelatedField(
-        many=True,
-        slug_field='link',
-        # queryset=Sub.objects.all()
-        read_only=True
-    )
-    questions = QuestionReadSerializer(many=True,read_only=True)
-    category = serializers.SlugRelatedField(
-        many=False,
-        slug_field='name',
-        # queryset=Category.objects.all()
-        read_only=True
-    )
-    class Meta:
-        model =  Internship
-        fields = ['id_code','category','company','available','skills','start','company_user','questions','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend_rate','location']
+# class InternshipSerializer(serializers.HyperlinkedModelSerializer):
+#     company = serializers.PrimaryKeyRelatedField(
+#         many=False,
+#         # queryset = Company.objects.all()
+#         read_only=True
+#     )
+#     company_user =  serializers.PrimaryKeyRelatedField(many=False,
+#     #  queryset=Company_User.objects.all(),
+#     read_only=True)
+#     skills = serializers.SlugRelatedField(
+#         many=True,
+#         slug_field='name',
+#         # queryset=Skill.objects.all()
+#         read_only=True
+#     )
+#     available = serializers.SlugRelatedField(
+#         many=True,
+#         slug_field='link',
+#         # queryset=Sub.objects.all()
+#         read_only=True
+#     )
+#     questions = QuestionReadSerializer(many=True,read_only=True)
+#     category = serializers.SlugRelatedField(
+#         many=False,
+#         slug_field='name',
+#         # queryset=Category.objects.all()
+#         read_only=True
+#     )
+#     class Meta:
+#         model =  Internship
+#         fields = ['id_code','category','company','available','skills','start','company_user','questions','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend_rate','location']
 
-    def create(self, validated_data):
-        try:
-            skills_data = validated_data.pop('skills')
-            hiring_data = validated_data.pop('available')
-            company_data = validated_data.pop('company')
-            company_user_data = validated_data.pop('company_user')
-            questions_data = validated_data.pop('questions')
-            internship = Internship.objects.create(company_user = company_user_data ,company = company_data , **validated_data)
-            for question_data in questions_data:
-                question_data = dict(question_data)
-                questions = Question.objects.create(internship = internship,placeholder = question_data['placeholder'],question=question_data['question'])
-            for skill in skills_data:
-                internship.skills.add(skill)
-            for hire in hiring_data:
-                internship.available.add(hire)
-            return internship
-        except:
-            raise serializers.ValidationError("You are INCORRECT!!hopefully ")
-    def delete(self, validated_data):
-        pass
 
-class InternshipReadSerializer(serializers.ModelSerializer):
 
-    company = CompanyReadSerializer(read_only=True)
+class InternshipSerializer(serializers.ModelSerializer):
+
+    company = serializers.PrimaryKeyRelatedField(many=False, queryset=Company.objects.all())
     company_user =  serializers.PrimaryKeyRelatedField(many=False, queryset=Company_User.objects.all())
     skills = serializers.SlugRelatedField(
         many=True,
@@ -464,7 +450,7 @@ class InternshipReadSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model =  Internship
-        fields = ['id','category','company','in_main','skills','available','company_user','applied','approved','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend','location','stipend_rate','code']
+        fields = ['id_code','category','company','in_main','skills','available','company_user','applied','approved','certificate','flexible_work_hours','letter_of_recommendation','free_snacks','informal_dress_code','PPO','stipend','deadline','duration','responsibilities','stipend','location','stipend_rate','code']
 
     def get_applied(self, obj):
         if 'request' in self.context and self.context['request'].META['PATH_INFO'] == '/submission/intern/':
@@ -472,8 +458,25 @@ class InternshipReadSerializer(serializers.ModelSerializer):
         return obj.submission.count() == 0
 
     def create(self, validated_data):
-        return JsonResponse({"error":"Not allowed to create"})
-
+        # try:
+        skills_data = validated_data.pop('skills')
+        hiring_data = validated_data.pop('available')
+        company_data = validated_data.pop('company')
+        company_user_data = validated_data.pop('company_user')
+        questions_data = validated_data.pop('questions')
+        internship = Internship.objects.create(company_user = company_user_data ,company = company_data , **validated_data)
+        for question_data in questions_data:
+            question_data = dict(question_data)
+            questions = Question.objects.create(internship = internship,placeholder = question_data['placeholder'],question=question_data['question'])
+        for skill in skills_data:
+            internship.skills.add(skill)
+        for hire in hiring_data:
+            internship.available.add(hire)
+        return internship
+        # except:
+        #     raise serializers.ValidationError("You are INCORRECT!!hopefully ")
+    def delete(self, validated_data):
+        pass
     def to_representation(self, instance):
         try:
             instance.id = str(instance.id) + instance.code
@@ -638,7 +641,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
 class SubmissionInternReadSerializer(serializers.ModelSerializer):
 
     intern =serializers.PrimaryKeyRelatedField(many=False, queryset=Intern.objects.all())
-    internship =InternshipReadSerializer(read_only=True)
+    internship =InternshipSerializer(read_only=True)
 
     class Meta:
         model = Submission
