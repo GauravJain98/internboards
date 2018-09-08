@@ -533,23 +533,23 @@ class InternshipReadSerializer(serializers.ModelSerializer):
             return len(Submission.objects.filter(intern = getIntern(self.context['request']) , internship = obj)) > 0
 
     def create(self, validated_data):
-        # try:
-        skills_data = validated_data.pop('skills')
-        hiring_data = validated_data.pop('available')
-        company_data = validated_data.pop('company')
-        company_user_data = validated_data.pop('company_user')
-        questions_data = validated_data.pop('questions')
-        internship = Internship.objects.create(company_user = company_user_data ,company = company_data , **validated_data)
-        for question_data in questions_data:
-            question_data = dict(question_data)
-            questions = Question.objects.create(internship = internship,placeholder = question_data['placeholder'],question=question_data['question'])
-        for skill in skills_data:
-            internship.skills.add(skill)
-        for hire in hiring_data:
-            internship.available.add(hire)
-        return internship
-        # except:
-        #     raise serializers.ValidationError("You are INCORRECT!!hopefully ")
+        try:
+            skills_data = validated_data.pop('skills')
+            hiring_data = validated_data.pop('available')
+            company_data = validated_data.pop('company')
+            company_user_data = validated_data.pop('company_user')
+            questions_data = validated_data.pop('questions')
+            internship = Internship.objects.create(company_user = company_user_data ,company = company_data , **validated_data)
+            for question_data in questions_data:
+                question_data = dict(question_data)
+                questions = Question.objects.create(internship = internship,placeholder = question_data['placeholder'],question=question_data['question'])
+            for skill in skills_data:
+                internship.skills.add(skill)
+            for hire in hiring_data:
+                internship.available.add(hire)
+            return internship
+        except:
+            raise serializers.ValidationError("You are INCORRECT!!hopefully ")
     def delete(self, validated_data):
         pass
     def to_representation(self, instance):
