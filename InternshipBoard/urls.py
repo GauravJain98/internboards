@@ -23,6 +23,7 @@ from InternshipBoard import settings
 from InternshipBoard.settings import *
 from django.conf.urls.static import static
 
+
 router = DefaultRouter()
 #change the router to sim
 router.register(r'intern/add', views.InternAddList)
