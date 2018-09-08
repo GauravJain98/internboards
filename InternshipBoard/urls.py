@@ -23,6 +23,7 @@ from InternshipBoard import settings
 from InternshipBoard.settings import *
 from django.conf.urls.static import static
 
+
 router = DefaultRouter()
 #change the router to sim
 router.register(r'intern/add', views.InternAddList)
@@ -50,6 +51,7 @@ router.register(r'submission', views.SubmissionList)
 router.register(r'question', views.QuestionList)
 router.register(r'answer/read', views.AnswerReadList)
 router.register(r'answer', views.AnswerList)
+router.register(r'user', views.UserList)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -66,7 +68,7 @@ urlpatterns = [
     path('forgot/', views.forgot),
     path('submission/company/', views.submissionCompany),
     url(r'^', include(router.urls))
-]#+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
     import debug_toolbar

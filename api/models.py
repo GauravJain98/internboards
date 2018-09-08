@@ -424,12 +424,12 @@ class Internship(models.Model):
     available = models.ManyToManyField(Sub , related_name='internships',null=True,blank=True)
     locations = models.ManyToManyField(Address)
     skills = models.ManyToManyField(Skill)
-    company = models.ForeignKey(
-        Company,
-        on_delete=models.CASCADE,
-        verbose_name = 'Company',
-        null=True
-    )
+    # company = models.ForeignKey(
+    #     Company,
+    #     on_delete=models.CASCADE,
+    #     verbose_name = 'Company',
+    #     null=True
+    # )
     company_user = models.ForeignKey(
         Company_User,
         on_delete=models.PROTECT,
