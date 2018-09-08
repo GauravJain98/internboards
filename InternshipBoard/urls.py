@@ -67,7 +67,7 @@ urlpatterns = [
     path('forgot/', views.forgot),
     path('submission/company/', views.submissionCompany),
     url(r'^', include(router.urls))
-]#+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
     import debug_toolbar

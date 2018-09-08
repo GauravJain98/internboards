@@ -7,8 +7,6 @@ from oauth.models import AuthToken
 from django.utils.timezone import now
 from django.core.cache import cache
 
-from drf_writable_nested import WritableNestedModelSerializer
-
 def getUser(request):
     if 'HTTP_ACCESSTOKEN' in request.META:
         token = request.META['HTTP_ACCESSTOKEN']
@@ -175,7 +173,7 @@ class CollegeSerializer(serializers.ModelSerializer):
         college , created = College.objects.update_or_create(address=address,**validated_data)
         return college
 
-class Company_UserSerializer(WritableNestedModelSerializer):
+class Company_UserSerializer(serializers.ModelSerializer):
 
     user = Custom_UserSerializer(required=True)
     added_user = serializers.PrimaryKeyRelatedField(many=False, queryset=User.objects.all(),required=False )
@@ -226,7 +224,7 @@ class SubSerializer(serializers.ModelSerializer):
     college = CollegeSerializer(read_only=True)
     class Meta:
         model = Sub
-        fields = ['id','link']#,'college']
+        fields = ['id','link','college']
 
 class InternSerializer(serializers.ModelSerializer):
 
@@ -486,7 +484,8 @@ class InternshipReadSerializer(serializers.ModelSerializer):
     def get_applied(self, obj):
         if 'request' in self.context and self.context['request'].META['PATH_INFO'] == '/submission/intern/':
             return None
-        return obj.submission.count() == 0
+        if 'request' in self.context:
+            return len(Submission.objects.filter(intern = getIntern(self.context['request']) , internship = obj)) > 0
 
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})
@@ -565,7 +564,7 @@ class InternshipReadSubSerializer(serializers.ModelSerializer):
         return CompanyReadSerializer(obj.company_user.company).data
 
     def get_applications(self, obj):
-        return len(list(Submisisons.objects.get(internship = obj)))
+        return len(list(Submission.objects.filter(internship = obj)))
 
     def create(self, validated_data):
         return JsonResponse({"error":"Not allowed to create"})
@@ -648,7 +647,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if self.context['request'].method != 'PATCH':
-            if Submission.objects.filter(intern = data['intern'] , internship = data['internship']).exists():
+            if len(Submission.objects.filter(intern = data['intern'] , internship = data['internship'])) > 0:
                 raise serializers.ValidationError("Already applied")
             return data
         return data
