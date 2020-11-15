@@ -33,7 +33,7 @@ from .permissions import *
 from functools import WRAPPER_ASSIGNMENTS, update_wrapper, wraps
 
 def send(html, email):
-    sg =sendgrid.SendGridAPIClient(apikey='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')
+    sg =sendgrid.SendGridAPIClient(apikey='<send grid key>')
     from_email = Email("contact@internboards.com")
     to_email = Email(email)
     subject = "Sending with SendGrid is Fun"
@@ -49,7 +49,7 @@ def send(html, email):
     response = sg.client.mail.send.post(request_body=mail.get())
 
 def forgotemail(url, email):
-    sg =sendgrid.SendGridAPIClient(apikey='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')
+    sg =sendgrid.SendGridAPIClient(apikey='<send grid key>')
     from_email = Email("contact@internboards.com")
     to_email = Email(email)
     subject = "Sending with SendGrid is Fun"
